@@ -1,9 +1,9 @@
 package eu.matejkormuth.db2project.models
 
 enum class EmployeeType {
-    IKTOfficer,
-    Cop,
-    Investigator,
-    Inspector,
-    Analyst
+    IKT_OFFICER,
+    POLICEMAN,
+    INVESTIGATOR,
+    INSPECTOR,
+    ANALYST
 }

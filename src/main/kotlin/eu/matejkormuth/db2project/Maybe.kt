@@ -1,4 +1,4 @@
 package eu.matejkormuth.db2project
 
-object Employees {
-}
+@Retention
+annotation class Maybe

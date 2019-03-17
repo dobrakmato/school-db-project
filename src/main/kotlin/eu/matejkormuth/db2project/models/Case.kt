@@ -1,6 +1,8 @@
 package eu.matejkormuth.db2project.models
 
 import eu.matejkormuth.db2project.Id
+import eu.matejkormuth.db2project.Lazy
+import eu.matejkormuth.db2project.Maybe
 
 data class Case(
         val id: Id,
@@ -8,5 +10,5 @@ data class Case(
         val headEmployee: Lazy<Employee>,
         val caseType: CaseType,
         val caseCategory: Lazy<Category>,
-        val crimeScene: Lazy<CrimeScene>? /* for protective action */
+        @Maybe val crimeScene: Lazy<CrimeScene>? = null /* for protective action */
 )
