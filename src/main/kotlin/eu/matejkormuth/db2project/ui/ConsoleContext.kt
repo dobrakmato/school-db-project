@@ -27,4 +27,6 @@ class ConsoleContext {
             Optional.empty()
         }
     }
+
+    fun readLine(): String = stdinReader.nextLine()
 }

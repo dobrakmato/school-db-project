@@ -8,7 +8,12 @@ Project for school subject Databases (2).
 - [Data Model #1](https://github.com/dobrakmato/school-db-project/blob/master/docs/DATA_MODEL1.pdf)
 - [Data Model #2](https://github.com/dobrakmato/school-db-project/blob/master/docs/DATA_MODEL2.pdf)
 
+### Introduction
 
+This is implementation of IS for police department written in Kotlin with PostgreSQL as database server. It contains
+simple home-made ORM which is using Java Reflection API to instantiate and introspect classes.
+
+It also has simple console UI to allow users to interact with database. 
 
 ### FAQ
 

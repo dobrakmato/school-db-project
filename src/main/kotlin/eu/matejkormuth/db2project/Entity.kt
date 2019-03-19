@@ -1,4 +1,3 @@
 package eu.matejkormuth.db2project
 
-@Retention
-annotation class Maybe
+open class Entity
