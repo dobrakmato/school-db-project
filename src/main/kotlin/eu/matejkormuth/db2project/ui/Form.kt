@@ -20,8 +20,18 @@ class Form(
     }
 
     private fun ask(it: FormItem, ctx: ConsoleContext) {
-        ctx.prompt("> ${it.text} [${it.defaultValue}]: ")
-        answers[it] = ctx.readLine()
+        var isValid = false
+        while (!isValid) {
+            if (it.defaultValue != null) {
+                ctx.prompt("> ${it.text} [${it.defaultValue}]: ")
+            } else {
+                ctx.prompt("> ${it.text}: ")
+            }
+            val answer = ctx.readLine()
+            isValid = it.validate(answer)
+            if (!isValid) continue
+            answers[it] = answer
+        }
     }
 
     private fun finish() {

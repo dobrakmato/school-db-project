@@ -1,10 +1,11 @@
 package eu.matejkormuth.db2project
 
 import java.lang.StringBuilder
+import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.Types
 
-class QueryBuilder<T : Entity>(private val table: Table<T>) {
+class QueryBuilder<T : Entity>(private val table: Table<T>, private val connection: Connection) {
 
     sealed class Param {
         data class IntParam(val value: Int?) : Param()
@@ -32,7 +33,7 @@ class QueryBuilder<T : Entity>(private val table: Table<T>) {
         val values = mutableListOf<String>()
 
         table.columns.values.forEach {
-            // Do not insert any number for auto incremented columns.
+            // Do not insertOne any number for auto incremented columns.
             if (!it.isAutoIncrement) {
                 columns.add(escape(it.name))
                 values.add("?")
@@ -58,7 +59,8 @@ class QueryBuilder<T : Entity>(private val table: Table<T>) {
             }
         }
 
-        return Lazy(autoIncrementedId.toInt())
+
+        return Lazy(autoIncrementedId)
     }
 
     fun updateOne(entity: T) = fluent {
@@ -94,24 +96,25 @@ class QueryBuilder<T : Entity>(private val table: Table<T>) {
 
     fun fetchMultiple(): Iterable<T> {
         val list = mutableListOf<T>()
+
         createStmt().use { stmt ->
             stmt.executeQuery().use {
                 while (it.next()) {
                     list.add(table.instantiate(it))
                 }
             }
+
         }
         return list
     }
 
-    fun execute(): Boolean = createStmt().use {
-        return it.execute()
-    }
+    fun execute(): Boolean = createStmt().use { it.execute() }
+
 
     private fun createStmt(): PreparedStatement {
         val dbgSql = sql.toString()
 
-        val stmt = table.connection.prepareStatement(sql.toString())
+        val stmt = connection.prepareStatement(sql.toString())
 
         /* bind parameters */
         parameters.forEachIndexed { index, param ->

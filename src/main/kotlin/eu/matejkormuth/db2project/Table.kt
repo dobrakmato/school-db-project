@@ -3,8 +3,6 @@ package eu.matejkormuth.db2project
 import java.lang.reflect.Constructor
 import java.sql.Connection
 import java.sql.ResultSet
-import java.util.*
-
 
 class Table<T : Entity>(klass: Class<T>) {
     val name: String = DDL.camelToSnakeCase(DDL.pluralize(klass.simpleName))
@@ -18,10 +16,7 @@ class Table<T : Entity>(klass: Class<T>) {
             .toMap()
     private val instantier = Instantier<T>(satisfyingCtr, columns)
 
-    val connection: Connection
-        get() = Database.getConnection()
-
-    fun queryBuilder(): QueryBuilder<T> = QueryBuilder(this)
+    fun queryBuilder(connection: Connection): QueryBuilder<T> = QueryBuilder(this, connection)
 
     internal class Instantier<T>(private val javaConstructor: Constructor<*>, columns: Map<String, TableField>) {
         data class CtrParam(val argIdx: Int, val columnName: String, val enumClass: Class<*>?)

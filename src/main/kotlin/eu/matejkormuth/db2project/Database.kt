@@ -15,6 +15,7 @@ object Database {
         config.username = "postgres"
         config.password = "root"
         config.dataSourceClassName = "org.postgresql.ds.PGSimpleDataSource"
+        config.isAutoCommit = false
         dataSource = HikariDataSource(config)
     }
 
@@ -25,5 +26,12 @@ object Database {
         return tableCache.getOrPut(klass) { Table(klass) } as Table<T>
     }
 
+    fun run(sql: String) {
+        getConnection().use {
+            it.createStatement().use { stmt ->
+                stmt.execute(sql)
+            }
+        }
+    }
 
 }

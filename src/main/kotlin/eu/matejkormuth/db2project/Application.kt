@@ -1,9 +1,8 @@
 package eu.matejkormuth.db2project
 
-import eu.matejkormuth.db2project.QueryBuilder.Companion.log
+import com.github.javafaker.Faker
 import eu.matejkormuth.db2project.models.*
-import eu.matejkormuth.db2project.ui.Menu
-import eu.matejkormuth.db2project.ui.MenuItem
+import eu.matejkormuth.db2project.ui.*
 
 fun main() {
     Application.run()
@@ -11,7 +10,12 @@ fun main() {
 
 object Application {
     fun run() {
+
         Database.initialize()
+
+        createTables()
+        fillTables()
+
         //Scene.clear()
 
         val mainMenu = Menu(listOf(
@@ -24,45 +28,64 @@ object Application {
                 MenuItem("\uD83D\uDCC8 Cop of month")
         ), header = "[ ⭐⭐ POLICE DEPARTMENT - MENU ⭐⭐ ]")
 
-        val entities = arrayOf(Case::class.java, Category::class.java, CityDistrict::class.java,
-                Connection::class.java, CrimeScene::class.java, Department::class.java,
-                Employee::class.java, Person::class.java, AssignedPerson::class.java, Punishment::class.java)
+        val nameItem = FormItem("Name", validations = listOf(NotEmpty))
+        val typeItem = FormItem("Type (witness, suspect, victim)", validations = listOf(NotEmpty, OneOf("witness", "suspect", "victim")))
+        val form = Form(listOf(nameItem, typeItem), "Create a new Person") {
+            transaction {
+                val person = insertOne(Person(
+                        name = it.getValue(nameItem),
+                        personType = PersonType.valueOf(it.getValue(typeItem).toUpperCase())
+                ))
 
-        Database.getConnection().use { conn ->
-            DDL.createScript(*entities).forEach { sql ->
-                conn.createStatement().use {
-                    log.debug(sql)
-                    it.execute(sql)
-                }
+                println(retrieve(person))
+                println("=======================")
             }
+        }
 
+        //Scene.content = form
 
-            //Scene.content = mainMenu
+        val faker = Faker()
 
-            insert(Person(
-                    name = "matej",
-                    personType = PersonType.WITNESS
-            ))
+        transaction {
+            val case = findOne<Case>(1)
 
-            People.insert(Person(
-                    name = "juraj",
-                    personType = PersonType.SUSPECT
-            ))
-
-            findAll<Person>().forEach {
-                println(it)
+            runQuery("SELECT 1337").use {
+                it.next()
+                println(it.getInt(1))
             }
+        }
+
+        transaction {
+            val case = Cases.findById(1)
+        }
+
+        transaction {
+            val person = findOne<Person>(14)
+            val lazy = findOne<Case>(1).caseCategory
+            val category = retrieve(lazy)
+        }
+
+        transaction {
+            val persons = findAll<Person>()
+            val table = DataTable(persons, listOf("ID", "Name", "Type")) {
+                listOf(it.id.toString(), it.name, it.personType.toString())
+            }
+            Scene.content = table
 
             val administrator = findOne<Person>(1)
             // val updated = administrator.copy(
             //         name = "Ivan"
             // ).save()
 
+
+            People.findById(4)
+
             println(administrator)
             delete<Employee>(3)
 
             println("ok")
         }
+
 
         val log by logger()
     }
