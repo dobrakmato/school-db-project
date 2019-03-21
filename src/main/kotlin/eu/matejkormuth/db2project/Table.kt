@@ -14,7 +14,10 @@ class Table<T : Entity>(klass: Class<T>) {
             .mapIndexed { idx, it -> TableField(it, satisfyingCtr.parameters[idx]) }
             .map { it.name to it }
             .toMap()
+    private val idField = columns.values.firstOrNull { it.isId }
     private val instantier = Instantier<T>(satisfyingCtr, columns)
+
+    val hasId = idField != null
 
     fun queryBuilder(connection: Connection): QueryBuilder<T> = QueryBuilder(this, connection)
 
@@ -56,6 +59,8 @@ class Table<T : Entity>(klass: Class<T>) {
 
 
     fun instantiate(resultSet: ResultSet): T = instantier.new(resultSet)
+    fun extractId(entity: T): Id = idField?.idFor(entity)
+            ?: throw  UnsupportedOperationException("Cannot get Id for non-id entity.")
 
     companion object {
         val log by logger()

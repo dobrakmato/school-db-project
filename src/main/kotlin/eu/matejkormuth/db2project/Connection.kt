@@ -56,7 +56,7 @@ inline fun <reified T : Entity> ConnectionAware.delete(id: Id): Boolean {
             .execute()
 }
 
-inline fun <reified T : Entity> ConnectionAware.findOne(id: Id): T {
+inline fun <reified T : Entity> ConnectionAware.findOne(id: Id): T? {
     return Database.tableFor(T::class.java)
             .queryBuilder(this.connection)
             .select()
@@ -72,7 +72,7 @@ inline fun <reified T : Entity> ConnectionAware.findAll(): Iterable<T> {
             .fetchMultiple()
 }
 
-inline fun <reified K : Entity> ConnectionAware.retrieve(lazy: Lazy<K>): K {
+inline fun <reified K : Entity> ConnectionAware.retrieve(lazy: Lazy<K>): K? {
     return lazy.get(this.connection)
 }
 

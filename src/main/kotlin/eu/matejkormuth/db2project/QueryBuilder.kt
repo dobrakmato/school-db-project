@@ -33,8 +33,8 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
         val values = mutableListOf<String>()
 
         table.columns.values.forEach {
-            // Do not insertOne any number for auto incremented columns.
-            if (!it.isAutoIncrement) {
+            // Do not insertOne any number for auto incremented columns (currently on PK Id).
+            if (!it.isId) {
                 columns.add(escape(it.name))
                 values.add("?")
 
@@ -51,7 +51,7 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
 
         log.debug(sql.toString())
 
-        val autoIncrementedId = createStmt().use { stmt ->
+        val autoIncrementedId = createBoundStatement().use { stmt ->
             stmt.execute()
             stmt.resultSet.use {
                 it.next()
@@ -64,8 +64,35 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
     }
 
     fun updateOne(entity: T) = fluent {
-        throw UnsupportedOperationException("not yet implemented!")
+        val kvPairs = mutableListOf<String>()
+
+        table.columns.values.filter { !it.isId }.forEach {
+            kvPairs += "${it.name} = ?"
+
+            val param: Param = when {
+                it.isInty -> Param.IntParam(it.valueFor(entity)?.toInt())
+                it.isStringy -> Param.StringParam(it.valueFor(entity))
+                else -> throw UnsupportedOperationException("Column $it is not inty nor stringy!")
+            }
+            parameters.add(param)
+        }
+
+
+        sql.append("UPDATE ${table.name} SET ${kvPairs.joinToString(", ")}")
+
+        /* if this entity has unique AI PK id column */
+        if (table.hasId) {
+            updateById(table.extractId(entity))
+        } else {
+            throw UnsupportedOperationException("Cannot update entity which has no ID column.")
+        }
+
+        createBoundStatement().use { stmt ->
+            stmt.executeUpdate()
+        }
     }
+
+    private fun updateById(id: Id) = eq("id", id)
 
     fun delete(): QueryBuilder<T> = fluent { sql.append("DELETE FROM ${escape(table.name)}") }
 
@@ -92,12 +119,12 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
 
     fun limit(limit: Int): QueryBuilder<T> = fluent { sql.append(" LIMIT $limit") }
 
-    fun fetchOne(): T = fetchMultiple().first()
+    fun fetchOne(): T? = fetchMultiple().firstOrNull()
 
     fun fetchMultiple(): Iterable<T> {
         val list = mutableListOf<T>()
 
-        createStmt().use { stmt ->
+        createBoundStatement().use { stmt ->
             stmt.executeQuery().use {
                 while (it.next()) {
                     list.add(table.instantiate(it))
@@ -108,10 +135,10 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
         return list
     }
 
-    fun execute(): Boolean = createStmt().use { it.execute() }
+    fun execute(): Boolean = createBoundStatement().use { it.execute() }
 
 
-    private fun createStmt(): PreparedStatement {
+    private fun createBoundStatement(): PreparedStatement {
         val dbgSql = sql.toString()
 
         val stmt = connection.prepareStatement(sql.toString())

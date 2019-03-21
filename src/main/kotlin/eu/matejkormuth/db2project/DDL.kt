@@ -44,7 +44,7 @@ object DDL {
             return table.columns.values.filter { it.isReference }.map {
                 val refType = ((it.genericType as ParameterizedType).actualTypeArguments[0] as Class<*>)
                 val refTypeName = camelToSnakeCase(pluralize(refType.simpleName))
-                "ALTER TABLE ${table.name} ADD FOREIGN KEY (${it.name}) REFERENCES $refTypeName (id)"
+                "ALTER TABLE ${table.name} ADD FOREIGN KEY (${it.name}) REFERENCES $refTypeName (id) DEFERRABLE"
             }
         }
 

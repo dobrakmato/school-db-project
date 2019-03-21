@@ -41,18 +41,23 @@ fun fillTables() {
     val confirmed = BooleanArray(maxPersons) { Math.random() > 0.5 }
 
     transaction {
+        run("SET CONSTRAINTS ALL DEFERRED")
+
+        println("Creating CityDistrict objects...")
         repeat(maxCityDistricts) {
             insertOne(CityDistrict(
                     name = faker.address().cityName()
             ))
         }
 
+        println("Creating Category objects...")
         repeat(maxCategories) {
             insertOne(Category(
                     name = faker.pokemon().location()
             ))
         }
 
+        println("Creating Employee objects...")
         repeat(maxEmployees) {
             val type = EmployeeType.values().random()
             insertOne(Employee(
@@ -63,6 +68,7 @@ fun fillTables() {
             ))
         }
 
+        println("Creating Person objects...")
         repeat(maxPersons) {
             var punishment: Lazy<Punishment>? = null
             val personType = PersonType.values().random()
@@ -82,6 +88,7 @@ fun fillTables() {
             ))
         }
 
+        println("Creating Department objects...")
         repeat(maxDepartments) {
             insertOne(Department(
                     name = faker.commerce().department(),
@@ -89,6 +96,7 @@ fun fillTables() {
             ))
         }
 
+        println("Creating CrimeScene objects...")
         repeat(maxCrimeScenes) {
             insertOne(CrimeScene(
                     name = faker.address().fullAddress(),
@@ -96,6 +104,7 @@ fun fillTables() {
             ))
         }
 
+        println("Creating Case objects...")
         repeat(maxCases) {
             val caseType = CaseType.values().random()
             insertOne(Case(
@@ -107,6 +116,7 @@ fun fillTables() {
             ))
         }
 
+        println("Creating AssignedEmployee objects...")
         repeat(maxAssignedEmployees) {
             insertOne(AssignedEmployee(
                     case = Lazy(faker.random().nextInt(maxCases)),
@@ -114,6 +124,7 @@ fun fillTables() {
             ))
         }
 
+        println("Creating Connection objects...")
         repeat(maxConnections) {
             val personId = faker.random().nextInt(maxPersons)
             insertOne(Connection(

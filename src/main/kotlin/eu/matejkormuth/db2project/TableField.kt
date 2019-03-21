@@ -10,7 +10,7 @@ data class TableField(private val it: Field, private val parameter: Parameter) {
     val isReference = it.type == Lazy::class.java
     val name = DDL.camelToSnakeCase(it.name) + if (isReference) "_id" else ""
     val codeName = it.name
-    val isAutoIncrement = it.type == Id::class.java
+    val isId = it.type == Id::class.java
     val isEnum = it.type.isEnum
     val isNullable = parameter.isAnnotationPresent(Maybe::class.java)
     val genericType by lazy { it.genericType }
@@ -18,9 +18,14 @@ data class TableField(private val it: Field, private val parameter: Parameter) {
     val isStringy: Boolean = it.type == String::class.java
     val isInty: Boolean = isEnum || isReference || intyTypes.contains(it.type)
 
-    fun <T> valueFor(row: T): String? {
+    init {
+        /* allow access to field */
         if (!it.isAccessible) it.isAccessible = true
+    }
 
+    fun <T> idFor(entity: T): Int = it.getInt(entity)
+
+    fun <T> valueFor(row: T): String? {
         return if (isEnum) {
             (it.get(row) as Enum<*>).ordinal.toString()
         } else {

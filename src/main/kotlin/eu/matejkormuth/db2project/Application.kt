@@ -14,7 +14,7 @@ object Application {
         Database.initialize()
 
         createTables()
-        fillTables()
+        //fillTables()
 
         //Scene.clear()
 
@@ -47,6 +47,16 @@ object Application {
         val faker = Faker()
 
         transaction {
+            repeat(10) {
+                insertOne(Person(
+                        name = faker.funnyName().name(),
+                        personType = PersonType.values().random()
+                ))
+            }
+        }
+
+        /*
+        transaction {
             val case = findOne<Case>(1)
 
             runQuery("SELECT 1337").use {
@@ -64,6 +74,7 @@ object Application {
             val lazy = findOne<Case>(1).caseCategory
             val category = retrieve(lazy)
         }
+        */
 
         transaction {
             val persons = findAll<Person>()
@@ -72,15 +83,20 @@ object Application {
             }
             Scene.content = table
 
-            val administrator = findOne<Person>(1)
-            // val updated = administrator.copy(
-            //         name = "Ivan"
-            // ).save()
+            findOne<Person>(1)?.let {
+                println("1 = $it")
+
+                updateOne(it.copy(
+                        name = "Ivan"
+                ))
+
+                println("1 = " + findOne<Person>(1))
+            }
+
 
 
             People.findById(4)
 
-            println(administrator)
             delete<Employee>(3)
 
             println("ok")

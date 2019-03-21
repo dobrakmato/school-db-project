@@ -6,7 +6,7 @@ data class Lazy<T : Entity>(
         val id: Int
 )
 
-inline fun <reified K : Entity> Lazy<K>.get(connection: Connection): K {
+inline fun <reified K : Entity> Lazy<K>.get(connection: Connection): K? {
     return Database.tableFor(K::class.java)
             .queryBuilder(connection)
             .select()

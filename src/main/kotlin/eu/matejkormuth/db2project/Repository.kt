@@ -3,7 +3,7 @@ package eu.matejkormuth.db2project
 import java.sql.Connection
 
 interface Repository<T : Entity> {
-    fun findById(id: Id): T
+    fun findById(id: Id): T?
     fun findAll(): Iterable<T>
     fun insert(entity: T)
     fun deleteById(id: Id)
@@ -36,7 +36,7 @@ class BoundRepository<T : Entity>(
                 .insertOne(entity)
     }
 
-    override fun findById(id: Id): T {
+    override fun findById(id: Id): T? {
         return table.queryBuilder(connection)
                 .select()
                 .eq("id", id)

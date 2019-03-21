@@ -16,9 +16,7 @@ class DataTable<Row>(
         columnsWidths = IntArray(header.count()) { itr.next().length + padding }
     }
 
-    override fun handleInput(ctx: ConsoleContext) {
-        ctx.readLine()
-    }
+    override fun handleInput(ctx: ConsoleContext) {} /* no input for DataTable */
 
     override fun draw(ctx: ConsoleContext) {
         val renderedRows = rows.map {
