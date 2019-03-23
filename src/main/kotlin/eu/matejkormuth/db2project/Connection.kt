@@ -42,11 +42,13 @@ inline fun <reified T : Entity> ConnectionAware.insertOne(entity: T): Lazy<T> {
             .insertOne(entity)
 }
 
-inline fun <reified T : Entity> ConnectionAware.insertMultiple(entities: Iterable<T>) {
-    val qb = Database.tableFor(T::class.java)
-            .queryBuilder(this.connection)
-    entities.forEach { qb.insertMultiple(it) }
-    qb.execute()
+inline fun <reified T : Entity> ConnectionAware.insertMultiple(entities: Iterable<T>, maxRowsAtOnce: Int = 10000) {
+    entities.chunked(maxRowsAtOnce).forEach { chunk ->
+        val qb = Database.tableFor(T::class.java)
+                .queryBuilder(this.connection)
+        chunk.forEach { qb.insertMultiple(it) }
+        qb.execute()
+    }
 }
 
 inline fun <reified T : Entity> ConnectionAware.updateOne(entity: T) {
