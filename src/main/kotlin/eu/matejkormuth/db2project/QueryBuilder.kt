@@ -15,6 +15,7 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
 
     private val sql = StringBuilder()
     private var where = false
+    private var insert = false
     private val parameters = mutableListOf<Param>()
 
     fun select(columns: Iterable<String>? = null): QueryBuilder<T> = fluent {
@@ -61,6 +62,41 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
 
 
         return Lazy(autoIncrementedId)
+    }
+
+    // make multiple calls to this method
+    fun insertMultiple(one: T) {
+        var wasFirst = false
+        if (!insert) {
+            val columns = table.columns.values.filter { !it.isId }.map { escape(it.name) }
+            sql.append("INSERT INTO ${escape(table.name)} (${columns.joinToString(", ")}) VALUES")
+            wasFirst = true
+            insert = true
+        }
+
+
+        val values = mutableListOf<String>()
+
+        table.columns.values.forEach {
+            // Do not insertOne any number for auto incremented columns (currently on PK Id).
+            if (!it.isId) {
+                values.add("?")
+
+                val param: Param = when {
+                    it.isInty -> Param.IntParam(it.valueFor(one)?.toInt())
+                    it.isBoolean -> Param.BooleanParam(it.booleanFor(one))
+                    it.isStringy -> Param.StringParam(it.valueFor(one))
+                    else -> throw UnsupportedOperationException("Column $it is not inty nor stringy nor boolean!")
+                }
+                parameters.add(param)
+            }
+        }
+
+        /* Add comma between all rows except the first row. */
+        if (!wasFirst) sql.append(", ")
+
+        sql.append("(${values.joinToString(", ")})")
+
     }
 
     fun updateOne(entity: T) = fluent {

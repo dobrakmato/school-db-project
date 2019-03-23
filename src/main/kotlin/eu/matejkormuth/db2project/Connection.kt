@@ -42,6 +42,13 @@ inline fun <reified T : Entity> ConnectionAware.insertOne(entity: T): Lazy<T> {
             .insertOne(entity)
 }
 
+inline fun <reified T : Entity> ConnectionAware.insertMultiple(entities: Iterable<T>) {
+    val qb = Database.tableFor(T::class.java)
+            .queryBuilder(this.connection)
+    entities.forEach { qb.insertMultiple(it) }
+    qb.execute()
+}
+
 inline fun <reified T : Entity> ConnectionAware.updateOne(entity: T) {
     Database.tableFor(T::class.java)
             .queryBuilder(this.connection)
@@ -73,6 +80,15 @@ inline fun <reified T : Entity> ConnectionAware.findAll(): Iterable<T> {
     return Database.tableFor(T::class.java)
             .queryBuilder(this.connection)
             .select()
+            .fetchMultiple()
+}
+
+
+inline fun <reified T : Entity> ConnectionAware.findAll(limit: Int): Iterable<T> {
+    return Database.tableFor(T::class.java)
+            .queryBuilder(this.connection)
+            .select()
+            .limit(limit)
             .fetchMultiple()
 }
 

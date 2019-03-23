@@ -76,7 +76,7 @@ object Application {
         */
 
         transaction {
-            val persons = findAll<Person>()
+            val persons = findAll<Person>(10)
             val table = DataTable(persons, listOf("ID", "Name", "Type")) {
                 listOf(it.id.toString(), it.name, it.personType.toString())
             }
@@ -96,7 +96,7 @@ object Application {
 
             People.findById(4)
 
-            delete<Employee>(3)
+            //delete<Employee>(3)
 
             println("ok")
         }
