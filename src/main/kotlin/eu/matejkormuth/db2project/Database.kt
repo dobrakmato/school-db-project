@@ -11,10 +11,9 @@ object Database {
 
     fun initialize() {
         val config = HikariConfig()
-        config.jdbcUrl = "jdbc:postgres://localhost:5432/postgres"
+        config.jdbcUrl = "jdbc:postgresql://localhost:5432/postgres"
         config.username = "postgres"
         config.password = "root"
-        config.dataSourceClassName = "org.postgresql.ds.PGSimpleDataSource"
         config.isAutoCommit = false
         dataSource = HikariDataSource(config)
     }

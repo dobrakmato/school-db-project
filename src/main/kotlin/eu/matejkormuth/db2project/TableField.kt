@@ -4,7 +4,7 @@ import java.lang.reflect.Field
 import java.lang.reflect.Parameter
 
 data class TableField(private val it: Field, private val parameter: Parameter) {
-    private val intyTypes = listOf(Int::class.java, Integer::class.java, Boolean::class.java)
+    private val intyTypes = listOf(Int::class.java, Integer::class.java)
 
     val type = it.type
     val isReference = it.type == Lazy::class.java
@@ -16,6 +16,7 @@ data class TableField(private val it: Field, private val parameter: Parameter) {
     val genericType by lazy { it.genericType }
 
     val isStringy: Boolean = it.type == String::class.java
+    val isBoolean: Boolean = it.type == Boolean::class.java
     val isInty: Boolean = isEnum || isReference || intyTypes.contains(it.type)
 
     init {
@@ -23,7 +24,9 @@ data class TableField(private val it: Field, private val parameter: Parameter) {
         if (!it.isAccessible) it.isAccessible = true
     }
 
-    fun <T> idFor(entity: T): Int = it.getInt(entity)
+    fun <T> idFor(entity: T): Id = it.getInt(entity)
+
+    fun <T> booleanFor(entity: T): Boolean? = it.getBoolean(entity)
 
     fun <T> valueFor(row: T): String? {
         return if (isEnum) {
@@ -32,7 +35,6 @@ data class TableField(private val it: Field, private val parameter: Parameter) {
             val toString = { it.get(row)?.toString() }
             when (it.type) {
                 String::class.java, Int::class.java, Integer::class.java -> toString()
-                Boolean::class.java -> if (it.getBoolean(row)) "1" else "0"
                 Lazy::class.java -> (it.get(row) as Lazy<*>?)?.id?.toString()
                 else -> throw UnsupportedOperationException("Cannot make string of ${it.type}!")
             }

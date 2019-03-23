@@ -4,6 +4,7 @@ import eu.matejkormuth.db2project.*
 
 /* surrogate entity to generate n to n table */
 data class AssignedEmployee(
+        val id: Id = NewId,
         val employee: Lazy<Employee>,
         val case: Lazy<Case>
 ) : Entity()

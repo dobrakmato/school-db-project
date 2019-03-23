@@ -3,6 +3,9 @@ package eu.matejkormuth.db2project
 import com.github.javafaker.Faker
 import eu.matejkormuth.db2project.models.*
 import eu.matejkormuth.db2project.ui.*
+import java.util.*
+import kotlin.system.exitProcess
+import kotlin.system.measureTimeMillis
 
 fun main() {
     Application.run()
@@ -13,8 +16,15 @@ object Application {
 
         Database.initialize()
 
-        createTables()
-        //fillTables()
+        val random = Random()
+        val faker = Faker()
+
+        println("Tables created in " + measureTimeMillis {
+            createTables()
+        } + "ms")
+        println("Tables filled in " + measureTimeMillis {
+            fillTables()
+        } + "ms")
 
         //Scene.clear()
 
@@ -43,17 +53,6 @@ object Application {
         }
 
         //Scene.content = form
-
-        val faker = Faker()
-
-        transaction {
-            repeat(10) {
-                insertOne(Person(
-                        name = faker.funnyName().name(),
-                        personType = PersonType.values().random()
-                ))
-            }
-        }
 
         /*
         transaction {

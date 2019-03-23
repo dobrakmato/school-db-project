@@ -4,7 +4,7 @@ import com.github.javafaker.Faker
 import eu.matejkormuth.db2project.models.*
 
 fun createTables() {
-    Database.getConnection().use { conn ->
+    transaction {
         DDL.createScript(
                 AssignedEmployee::class.java,
                 Case::class.java,
@@ -16,12 +16,7 @@ fun createTables() {
                 Employee::class.java,
                 Person::class.java,
                 Punishment::class.java
-        ).forEach { sql ->
-            conn.createStatement().use {
-                QueryBuilder.log.debug(sql)
-                it.execute(sql)
-            }
-        }
+        ).forEach { sql -> run(sql) }
     }
 }
 
@@ -57,13 +52,21 @@ fun fillTables() {
             ))
         }
 
+        println("Creating Department objects...")
+        repeat(maxDepartments) {
+            insertOne(Department(
+                    name = faker.commerce().department(),
+                    headEmployee = Lazy(faker.random().nextInt(maxEmployees) + 1)
+            ))
+        }
+
         println("Creating Employee objects...")
         repeat(maxEmployees) {
             val type = EmployeeType.values().random()
             insertOne(Employee(
                     name = faker.name().fullName(),
                     type = type,
-                    department = Lazy(faker.random().nextInt(maxDepartments)),
+                    department = Lazy(faker.random().nextInt(maxDepartments) + 1),
                     rank = if (type == EmployeeType.POLICEMAN) faker.random().nextInt(20) else null
             ))
         }
@@ -75,9 +78,12 @@ fun fillTables() {
 
             if (personType == PersonType.SUSPECT && confirmed[it]) {
                 val punishmentType = PunishmentType.values().random()
+                val maxFineAmount = 2000
                 punishment = insertOne(Punishment(
                         punishmentType = punishmentType,
-                        fineAmount = if (punishmentType == PunishmentType.FINE) faker.random().nextInt(2000) else null
+                        fineAmount = if (punishmentType == PunishmentType.FINE) {
+                            faker.random().nextInt(maxFineAmount)
+                        } else null
                 ))
             }
 
@@ -88,19 +94,11 @@ fun fillTables() {
             ))
         }
 
-        println("Creating Department objects...")
-        repeat(maxDepartments) {
-            insertOne(Department(
-                    name = faker.commerce().department(),
-                    headEmployee = Lazy(faker.random().nextInt(maxEmployees))
-            ))
-        }
-
         println("Creating CrimeScene objects...")
         repeat(maxCrimeScenes) {
             insertOne(CrimeScene(
                     name = faker.address().fullAddress(),
-                    cityDistrict = Lazy(faker.random().nextInt(maxCityDistricts))
+                    cityDistrict = Lazy(faker.random().nextInt(maxCityDistricts) + 1)
             ))
         }
 
@@ -109,29 +107,29 @@ fun fillTables() {
             val caseType = CaseType.values().random()
             insertOne(Case(
                     description = faker.book().title(),
-                    headEmployee = Lazy(faker.random().nextInt(maxEmployees)),
+                    headEmployee = Lazy(faker.random().nextInt(maxEmployees) + 1),
                     caseType = caseType,
-                    caseCategory = Lazy(faker.random().nextInt(maxCategories)),
-                    crimeScene = if (caseType == CaseType.PROTECTIVE_ACTION) Lazy(faker.random().nextInt(maxCrimeScenes)) else null
+                    caseCategory = Lazy(faker.random().nextInt(maxCategories) + 1),
+                    crimeScene = if (caseType == CaseType.PROTECTIVE_ACTION) Lazy(faker.random().nextInt(maxCrimeScenes) + 1) else null
             ))
         }
 
         println("Creating AssignedEmployee objects...")
         repeat(maxAssignedEmployees) {
             insertOne(AssignedEmployee(
-                    case = Lazy(faker.random().nextInt(maxCases)),
-                    employee = Lazy(faker.random().nextInt(maxEmployees))
+                    case = Lazy(faker.random().nextInt(maxCases) + 1 ),
+                    employee = Lazy(faker.random().nextInt(maxEmployees) + 1)
             ))
         }
 
         println("Creating Connection objects...")
         repeat(maxConnections) {
-            val personId = faker.random().nextInt(maxPersons)
+            val personId = faker.random().nextInt(maxPersons) + 1
             insertOne(Connection(
-                    case = Lazy(faker.random().nextInt(maxCases)),
+                    case = Lazy(faker.random().nextInt(maxCases) + 1),
                     person = Lazy(personId),
-                    crimeScene = Lazy(faker.random().nextInt(maxCrimeScenes)),
-                    confirmed = confirmed[personId]
+                    crimeScene = Lazy(faker.random().nextInt(maxCrimeScenes) + 1),
+                    confirmed = confirmed[personId - 1]
             ))
         }
     }

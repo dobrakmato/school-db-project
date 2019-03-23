@@ -48,6 +48,10 @@ inline fun <reified T : Entity> ConnectionAware.updateOne(entity: T) {
             .updateOne(entity)
 }
 
+inline fun <reified T : Entity> T.save() {
+
+}
+
 inline fun <reified T : Entity> ConnectionAware.delete(id: Id): Boolean {
     return Database.tableFor(T::class.java)
             .queryBuilder(this.connection)
@@ -77,6 +81,7 @@ inline fun <reified K : Entity> ConnectionAware.retrieve(lazy: Lazy<K>): K? {
 }
 
 fun ConnectionAware.run(sql: Sql): Boolean = this.connection.createStatement().use {
+    println("SQL: $sql")
     return it.execute(sql)
 }
 

@@ -9,6 +9,7 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
 
     sealed class Param {
         data class IntParam(val value: Int?) : Param()
+        data class BooleanParam(val value: Boolean?) : Param()
         data class StringParam(val value: String?) : Param()
     }
 
@@ -40,16 +41,15 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
 
                 val param: Param = when {
                     it.isInty -> Param.IntParam(it.valueFor(row)?.toInt())
+                    it.isBoolean -> Param.BooleanParam(it.booleanFor(row))
                     it.isStringy -> Param.StringParam(it.valueFor(row))
-                    else -> throw UnsupportedOperationException("Column $it is not inty nor stringy!")
+                    else -> throw UnsupportedOperationException("Column $it is not inty nor stringy nor boolean!")
                 }
                 parameters.add(param)
             }
         }
 
-        sql.append("INSERT INTO ${escape(table.name)} (${columns.joinToString(", ")}) VALUES (${values.joinToString(",")}) RETURNING id")
-
-        log.debug(sql.toString())
+        sql.append("INSERT INTO ${escape(table.name)} (${columns.joinToString(", ")}) VALUES (${values.joinToString(", ")}) RETURNING id")
 
         val autoIncrementedId = createBoundStatement().use { stmt ->
             stmt.execute()
@@ -71,6 +71,7 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
 
             val param: Param = when {
                 it.isInty -> Param.IntParam(it.valueFor(entity)?.toInt())
+                it.isBoolean -> Param.BooleanParam(it.booleanFor(entity))
                 it.isStringy -> Param.StringParam(it.valueFor(entity))
                 else -> throw UnsupportedOperationException("Column $it is not inty nor stringy!")
             }
@@ -139,7 +140,7 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
 
 
     private fun createBoundStatement(): PreparedStatement {
-        val dbgSql = sql.toString()
+        var dbgSql = sql.toString()
 
         val stmt = connection.prepareStatement(sql.toString())
 
@@ -147,12 +148,21 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
         parameters.forEachIndexed { index, param ->
             when (param) {
                 is Param.IntParam -> stmt.setObject(index + 1, param.value, Types.INTEGER)
+                is Param.BooleanParam -> stmt.setObject(index + 1, param.value, Types.BOOLEAN)
                 is Param.StringParam -> stmt.setObject(index + 1, param.value, Types.VARCHAR)
             }
         }
 
+        /* incorporate parameters to actual query */
+        parameters.forEach {
+            dbgSql = when (it) {
+                is Param.IntParam -> dbgSql.replaceFirst("?", it.value.toString())
+                is Param.BooleanParam -> dbgSql.replaceFirst("?", it.value.toString())
+                is Param.StringParam -> dbgSql.replaceFirst("?", it.value ?: "null")
+            }
+
+        }
         log.debug("SQL: $dbgSql")
-        log.debug(" PARAMETERS: $parameters")
 
         return stmt
     }
