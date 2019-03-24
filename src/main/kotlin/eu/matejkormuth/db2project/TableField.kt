@@ -2,6 +2,7 @@ package eu.matejkormuth.db2project
 
 import java.lang.reflect.Field
 import java.lang.reflect.Parameter
+import java.lang.reflect.ParameterizedType
 
 data class TableField(private val it: Field, private val parameter: Parameter) {
     private val intyTypes = listOf(Int::class.java, Integer::class.java)
@@ -14,6 +15,9 @@ data class TableField(private val it: Field, private val parameter: Parameter) {
     val isEnum = it.type.isEnum
     val isNullable = parameter.isAnnotationPresent(Maybe::class.java)
     val genericType by lazy { it.genericType }
+
+    @Suppress("UNCHECKED_CAST")
+    val table by lazy { Database.tableFor(((genericType as ParameterizedType).actualTypeArguments[0] as Class<Entity>)) }
 
     val isStringy: Boolean = it.type == String::class.java
     val isBoolean: Boolean = it.type == Boolean::class.java

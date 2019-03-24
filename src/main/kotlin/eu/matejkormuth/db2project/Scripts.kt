@@ -23,7 +23,7 @@ fun createTables() {
 inline fun <reified T : Entity> ConnectionAware.fillTable(count: Int, crossinline block: (Int) -> T) {
     var index = 0
     val seq = generateSequence { block(index++) }
-    insertMultiple(seq.take(count).asIterable(), 100)
+    insertMultiple(seq.take(count).asIterable(), 100) // with 100 rows it runs very fast
 }
 
 fun fillTables() {

@@ -1,6 +1,5 @@
 package eu.matejkormuth.db2project
 
-import java.lang.RuntimeException
 import java.lang.reflect.Constructor
 import java.sql.Connection
 import java.sql.ResultSet
@@ -24,21 +23,21 @@ class Table<T : Entity>(klass: Class<T>) {
     fun queryBuilder(connection: Connection): QueryBuilder<T> = QueryBuilder(this, connection)
 
     internal class Instantier<T>(private val javaConstructor: Constructor<*>, columns: Map<String, TableField>) {
-        data class CtrParam(val argIdx: Int, val columnName: String, val enumClass: Class<*>?, val isReference: Boolean)
+        data class CtrParam(val argIdx: Int, val columnName: String, val enumClass: Class<*>?, val tableField: TableField)
 
         private val paramsCount = javaConstructor.parameterCount
         private val ctrParams: MutableList<CtrParam> = mutableListOf()
 
         init {
             columns.values.forEachIndexed { index, tableField ->
-                ctrParams.add(CtrParam(index, tableField.name, if (tableField.isEnum) tableField.type else null, tableField.isReference))
+                ctrParams.add(CtrParam(index, tableField.name, if (tableField.isEnum) tableField.type else null, tableField))
             }
         }
 
-        fun new(resultSet: ResultSet): T {
+        fun new(resultSet: ResultSet, recursive: Boolean, tablePrefix: String): T {
             val args = Array<Any?>(paramsCount) { null }
             ctrParams.forEach {
-                args[it.argIdx] = resultSet.getObject(it.columnName)
+                args[it.argIdx] = resultSet.getObject(tablePrefix + it.columnName)
 
                 /* convert enums represented by ints to enums */
                 if (it.enumClass != null) {
@@ -46,8 +45,18 @@ class Table<T : Entity>(klass: Class<T>) {
                 }
 
                 /* convert lazys represented by int to lazys */
-                if (it.isReference) {
-                    args[it.argIdx] = Lazy<Entity>(it.argIdx)
+                if (it.tableField.isReference) {
+                    val lazy = Lazy<Entity>(it.argIdx)
+                    args[it.argIdx] = lazy
+
+                    if (recursive) {
+                        val foreignTable = it.tableField.table
+                        lazy.value = foreignTable.instantiate(
+                                resultSet,
+                                recursive = false,
+                                tablePrefix = true
+                        ) // todo: recursive
+                    }
                 }
             }
             return callJavaCtr(args)
@@ -73,9 +82,9 @@ class Table<T : Entity>(klass: Class<T>) {
     }
 
 
-    fun instantiate(resultSet: ResultSet): T {
+    fun instantiate(resultSet: ResultSet, recursive: Boolean, tablePrefix: Boolean = false): T {
         try {
-            return instantier.new(resultSet)
+            return instantier.new(resultSet, recursive, if (tablePrefix) "${name}_" else "")
         } catch (ex: Exception) {
             log.error("Cannot instantiate '$name' entity!")
             throw ex

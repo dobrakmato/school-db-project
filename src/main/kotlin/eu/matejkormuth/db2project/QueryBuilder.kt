@@ -16,6 +16,7 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
     private val sql = StringBuilder()
     private var where = false
     private var insert = false
+    private var eager = false
     private val parameters = mutableListOf<Param>()
 
     fun select(columns: Iterable<String>? = null): QueryBuilder<T> = fluent {
@@ -28,6 +29,34 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
         }
 
         sql.append(" FROM ${escape(table.name)}")
+
+    }
+
+    fun selectEager(): QueryBuilder<T> = fluent {
+        eager = true
+
+        sql.append("SELECT ")
+
+        val pairs = mutableListOf<Pair<String, String>>()
+
+        // aliases from this table
+        pairs.addAll(table.columns.values.map { "${table.name}.${it.name}" to "${table.name}_${it.name}" })
+
+        // aliases from all foreign tables
+        table.columns.values.filter { it.isReference }.forEach { foreignKey ->
+            val foreignTable = foreignKey.table
+            pairs.addAll(foreignTable.columns.values.map { "${foreignTable.name}.${it.name}" to "${foreignTable.name}_${it.name}" })
+        }
+
+        sql.append(pairs.joinToString(", ") { "${it.first} as ${it.second}" })
+
+        sql.append(" FROM ${escape(table.name)}")
+
+        // find all join tables
+        table.columns.values.filter { it.isReference }.forEach {
+            sql.append(" JOIN ${it.table.name} ON ${table.name}.${it.name} = ${it.table.name}.id")
+        }
+
     }
 
     fun insertOne(row: T): Lazy<T> {
@@ -136,14 +165,22 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
     fun <K> eq(column: String, value: K) = where(column, "=", value)
 
     fun <K> where(column: String, op: String, value: K): QueryBuilder<T> = fluent {
+        var col = column /* Need this to strip the table name in some cases */
+
         if (!where) sql.append(" WHERE ")
-        sql.append(escape(column))
+        sql.append(column)
         sql.append(' ')
         sql.append(op)
         sql.append(" ?")
 
-        if (column !in table.columns) throw IllegalArgumentException("Column $column does not exsits on ${table.name}")
-        val it = table.columns.getValue(column)
+        /* Check for column name and for "table_name.column_name" */
+        if (col !in table.columns) {
+            if (col.split('.').last() !in table.columns) {
+                throw IllegalArgumentException("Column $column does not exsits on ${table.name}")
+            }
+            col = col.split(".").last()
+        }
+        val it = table.columns.getValue(col)
 
         val param: Param = when {
             it.isInty -> Param.IntParam(value.toString().toInt())
@@ -164,7 +201,7 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
         createBoundStatement().use { stmt ->
             stmt.executeQuery().use {
                 while (it.next()) {
-                    list.add(table.instantiate(it))
+                    list.add(table.instantiate(it, eager, eager))
                 }
             }
 
@@ -173,7 +210,6 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
     }
 
     fun execute(): Boolean = createBoundStatement().use { it.execute() }
-
 
     private fun createBoundStatement(): PreparedStatement {
         var dbgSql = sql.toString()
@@ -202,6 +238,7 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
 
         return stmt
     }
+
 
     companion object {
         val log by logger()

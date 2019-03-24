@@ -93,6 +93,14 @@ object Application {
             }
 
 
+            val department = findOne<Department>(1)
+            println(department)
+            println(retrieve(department?.headEmployee!!))
+
+            val eagerDepartment = findOne<Department>(1, true)
+            println(eagerDepartment)
+            println(retrieve(eagerDepartment?.headEmployee!!))
+
 
             People.findById(4)
 

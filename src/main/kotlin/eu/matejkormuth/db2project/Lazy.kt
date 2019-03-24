@@ -4,12 +4,24 @@ import java.sql.Connection
 
 data class Lazy<T : Entity>(
         val id: Int
-)
+) {
+    var value: T? = null
+    override fun toString(): String {
+        if (value == null) {
+            return "Lazy(id=$id)"
+        }
+        return "Lazy($value)"
+    }
+}
+
 
 inline fun <reified K : Entity> Lazy<K>.get(connection: Connection): K? {
-    return Database.tableFor(K::class.java)
-            .queryBuilder(connection)
-            .select()
-            .eq("id", id)
-            .fetchOne()
+    if (value == null) {
+        value = Database.tableFor(K::class.java)
+                .queryBuilder(connection)
+                .select()
+                .eq("id", id)
+                .fetchOne()
+    }
+    return value
 }

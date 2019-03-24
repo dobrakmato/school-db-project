@@ -69,11 +69,13 @@ inline fun <reified T : Entity> ConnectionAware.delete(id: Id): Boolean {
             .execute()
 }
 
-inline fun <reified T : Entity> ConnectionAware.findOne(id: Id): T? {
-    return Database.tableFor(T::class.java)
-            .queryBuilder(this.connection)
-            .select()
-            .eq("id", id)
+inline fun <reified T : Entity> ConnectionAware.findOne(id: Id, eagerLoad: Boolean = false): T? {
+    val table = Database.tableFor(T::class.java)
+    val qb = table.queryBuilder(this.connection)
+
+    if (eagerLoad) qb.selectEager() else qb.select()
+
+    return qb.eq("${table.name}.id", id)
             .limit(1)
             .fetchOne()
 }
