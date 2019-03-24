@@ -3,6 +3,8 @@ package eu.matejkormuth.db2project
 import java.lang.reflect.Constructor
 import java.sql.Connection
 import java.sql.ResultSet
+import java.sql.Timestamp
+import java.time.Instant
 import java.util.*
 
 class Table<T : Entity>(klass: Class<T>) {
@@ -42,6 +44,12 @@ class Table<T : Entity>(klass: Class<T>) {
                 /* convert enums represented by ints to enums */
                 if (it.enumClass != null) {
                     args[it.argIdx] = enum(it.enumClass, args[it.argIdx] as Int)
+                }
+
+                /* convert timestamp to instant */
+                if (args[it.argIdx] is Timestamp) {
+                    val ts = args[it.argIdx] as Timestamp
+                    args[it.argIdx] = Instant.ofEpochMilli(ts.time)
                 }
 
                 /* convert lazys represented by int to lazys */

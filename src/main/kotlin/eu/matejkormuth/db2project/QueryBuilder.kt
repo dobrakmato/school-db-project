@@ -3,7 +3,10 @@ package eu.matejkormuth.db2project
 import java.lang.StringBuilder
 import java.sql.Connection
 import java.sql.PreparedStatement
+import java.sql.Timestamp
 import java.sql.Types
+import java.time.Instant
+import java.time.ZoneId
 
 class QueryBuilder<T : Entity>(private val table: Table<T>, private val connection: Connection) {
 
@@ -11,6 +14,7 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
         data class IntParam(val value: Int?) : Param()
         data class BooleanParam(val value: Boolean?) : Param()
         data class StringParam(val value: String?) : Param()
+        data class TimestampParam(val value: Instant?) : Param()
     }
 
     private val sql = StringBuilder()
@@ -73,6 +77,7 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
                     it.isInty -> Param.IntParam(it.valueFor(row)?.toInt())
                     it.isBoolean -> Param.BooleanParam(it.booleanFor(row))
                     it.isStringy -> Param.StringParam(it.valueFor(row))
+                    it.type == Instant::class.java -> Param.TimestampParam(it.instantFor(row))
                     else -> throw UnsupportedOperationException("Column $it is not inty nor stringy nor boolean!")
                 }
                 parameters.add(param)
@@ -115,6 +120,7 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
                     it.isInty -> Param.IntParam(it.valueFor(one)?.toInt())
                     it.isBoolean -> Param.BooleanParam(it.booleanFor(one))
                     it.isStringy -> Param.StringParam(it.valueFor(one))
+                    it.type == Instant::class.java -> Param.TimestampParam(it.instantFor(one))
                     else -> throw UnsupportedOperationException("Column $it is not inty nor stringy nor boolean!")
                 }
                 parameters.add(param)
@@ -138,6 +144,7 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
                 it.isInty -> Param.IntParam(it.valueFor(entity)?.toInt())
                 it.isBoolean -> Param.BooleanParam(it.booleanFor(entity))
                 it.isStringy -> Param.StringParam(it.valueFor(entity))
+                it.type == Instant::class.java -> Param.TimestampParam(it.instantFor(entity))
                 else -> throw UnsupportedOperationException("Column $it is not inty nor stringy!")
             }
             parameters.add(param)
@@ -222,6 +229,7 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
                 is Param.IntParam -> stmt.setObject(index + 1, param.value, Types.INTEGER)
                 is Param.BooleanParam -> stmt.setObject(index + 1, param.value, Types.BOOLEAN)
                 is Param.StringParam -> stmt.setObject(index + 1, param.value, Types.VARCHAR)
+                is Param.TimestampParam -> stmt.setObject(index + 1, if (param.value != null) Timestamp.from(param.value) else null, Types.TIMESTAMP)
             }
         }
 
@@ -231,6 +239,8 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
                 is Param.IntParam -> dbgSql.replaceFirst("?", it.value.toString())
                 is Param.BooleanParam -> dbgSql.replaceFirst("?", it.value.toString())
                 is Param.StringParam -> dbgSql.replaceFirst("?", it.value ?: "null")
+                is Param.TimestampParam -> dbgSql.replaceFirst("?", it.value?.atZone(ZoneId.of("Europe/Bratislava"))?.toLocalDateTime()?.toString()
+                        ?: "null")
             }
 
         }

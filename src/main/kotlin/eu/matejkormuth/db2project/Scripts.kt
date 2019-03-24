@@ -2,6 +2,7 @@ package eu.matejkormuth.db2project
 
 import com.github.javafaker.Faker
 import eu.matejkormuth.db2project.models.*
+import java.util.concurrent.TimeUnit
 
 fun createTables() {
     transaction {
@@ -30,14 +31,14 @@ fun fillTables() {
     val faker = Faker()
 
     val maxCityDistricts = 30
-    val maxPersons = 2000
-    val maxConnections = 2000
+    val maxPersons = 10000
+    val maxConnections = 8000
     val maxEmployees = 500
     val maxAssignedEmployees = 700
     val maxDepartments = 30
     val maxCategories = 30
     val maxCrimeScenes = 800
-    val maxCases = 1000
+    val maxCases = 4000
 
     val confirmed = BooleanArray(maxPersons) { Math.random() > 0.5 }
 
@@ -121,8 +122,10 @@ fun fillTables() {
                     description = faker.book().title(),
                     headEmployee = Lazy(faker.random().nextInt(maxEmployees) + 1),
                     caseType = caseType,
+                    closedBy = if (faker.random().nextDouble() > 0.3) Lazy(faker.random().nextInt(maxEmployees) + 1) else null,
                     caseCategory = Lazy(faker.random().nextInt(maxCategories) + 1),
-                    crimeScene = if (caseType == CaseType.PROTECTIVE_ACTION) Lazy(faker.random().nextInt(maxCrimeScenes) + 1) else null
+                    protectiveActionPlace = if (caseType == CaseType.PROTECTIVE_ACTION) Lazy(faker.random().nextInt(maxCrimeScenes) + 1) else null,
+                    createdAt = faker.date().past(365, TimeUnit.DAYS).toInstant()
             )
         }
 
@@ -141,7 +144,8 @@ fun fillTables() {
                     case = Lazy(faker.random().nextInt(maxCases) + 1),
                     person = Lazy(personId),
                     crimeScene = Lazy(faker.random().nextInt(maxCrimeScenes) + 1),
-                    confirmed = confirmed[personId - 1]
+                    confirmedBy = if (confirmed[personId - 1]) Lazy(faker.random().nextInt(maxEmployees) + 1) else null,
+                    confirmedAt = if (confirmed[personId - 1]) faker.date().past(365, TimeUnit.DAYS).toInstant() else null
             )
         }
     }

@@ -19,7 +19,7 @@ data class Menu(val items: List<MenuItem>, val header: String? = null) : Drawabl
             optional = ctx.readInt(minValue = 0, maxValue = items.size)
         }
 
-        items[optional.get()].onChoose()
+        items[optional.get() - 1].onChoose()
     }
 
     private fun formatItem(index: Int, item: MenuItem): String {

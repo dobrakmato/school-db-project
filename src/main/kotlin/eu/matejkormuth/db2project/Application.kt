@@ -28,15 +28,6 @@ object Application {
 
         //Scene.clear()
 
-        val mainMenu = Menu(listOf(
-                MenuItem("Employees"),
-                MenuItem("Departments"),
-                MenuItem("Cases"),
-                MenuItem("Crime scenes"),
-                MenuItem("Punishments"),
-                MenuItem("☠️ Dangerous city districts"),
-                MenuItem("\uD83D\uDCC8 Cop of month")
-        ), header = "[ ⭐⭐ POLICE DEPARTMENT - MENU ⭐⭐ ]")
 
         val nameItem = FormItem("Name", validations = listOf(NotEmpty))
         val typeItem = FormItem("Type (witness, suspect, victim)", validations = listOf(NotEmpty, OneOf("witness", "suspect", "victim")))
@@ -109,7 +100,11 @@ object Application {
             println("ok")
         }
 
+        ApplicationUI.mainMenu()
+
 
         val log by logger()
     }
+
+
 }

@@ -1,9 +1,7 @@
 package eu.matejkormuth.db2project.models
 
-import eu.matejkormuth.db2project.Entity
-import eu.matejkormuth.db2project.Id
-import eu.matejkormuth.db2project.Lazy
-import eu.matejkormuth.db2project.NewId
+import eu.matejkormuth.db2project.*
+import java.time.Instant
 
 /* surrogate entity for ternary relation */
 data class Connection(
@@ -11,5 +9,6 @@ data class Connection(
         val case: Lazy<Case>,
         val crimeScene: Lazy<CrimeScene>,
         val person: Lazy<Person>,
-        val confirmed: Boolean
+        @Maybe val confirmedBy: Lazy<Employee>?,
+        @Maybe val confirmedAt: Instant?
 ): Entity()

@@ -3,6 +3,7 @@ package eu.matejkormuth.db2project
 import java.lang.reflect.Field
 import java.lang.reflect.Parameter
 import java.lang.reflect.ParameterizedType
+import java.time.Instant
 
 data class TableField(private val it: Field, private val parameter: Parameter) {
     private val intyTypes = listOf(Int::class.java, Integer::class.java)
@@ -31,6 +32,8 @@ data class TableField(private val it: Field, private val parameter: Parameter) {
     fun <T> idFor(entity: T): Id = it.getInt(entity)
 
     fun <T> booleanFor(entity: T): Boolean? = it.getBoolean(entity)
+
+    fun <T> instantFor(row: T): Instant? = it.get(row) as? Instant
 
     fun <T> valueFor(row: T): String? {
         return if (isEnum) {

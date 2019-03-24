@@ -105,6 +105,6 @@ fun ConnectionAware.run(sql: Sql): Boolean = this.connection.createStatement().u
     return it.execute(sql)
 }
 
-fun ConnectionAware.runQuery(sql: Sql): ResultSet = this.connection.createStatement().use {
-    return it.executeQuery(sql)
+fun <T> ConnectionAware.runQuery(sql: Sql, receiver: (it: ResultSet) -> T): T = this.connection.createStatement().use {
+    return receiver(it.executeQuery(sql))
 }

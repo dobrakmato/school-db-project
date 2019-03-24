@@ -2,6 +2,7 @@ package eu.matejkormuth.db2project
 
 import java.lang.StringBuilder
 import java.lang.reflect.ParameterizedType
+import java.time.Instant
 
 object DDL {
 
@@ -34,6 +35,7 @@ object DDL {
             return when (it.type) {
                 Boolean::class.java -> "BOOLEAN"
                 String::class.java -> "VARCHAR(255)"
+                Instant::class.java -> "TIMESTAMP"
                 Id::class.java -> "SERIAL PRIMARY KEY"
                 Int::class.java, Integer::class.java, Lazy::class.java -> "INTEGER"
                 else -> throw UnsupportedOperationException("Type ${it.type} unrecognized!")
