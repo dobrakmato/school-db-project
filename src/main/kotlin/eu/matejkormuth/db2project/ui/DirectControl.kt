@@ -5,5 +5,7 @@ data class DirectControl(val receiver: (ConsoleContext) -> Unit) : Drawable {
         receiver(ctx)
     }
 
-    override fun handleInput(ctx: ConsoleContext) {}
+    override fun handleInput(ctx: ConsoleContext) {
+        finish()
+    }
 }

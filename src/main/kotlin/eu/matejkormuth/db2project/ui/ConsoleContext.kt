@@ -1,5 +1,6 @@
 package eu.matejkormuth.db2project.ui
 
+import com.github.ajalt.mordant.TermColors
 import java.lang.Exception
 import java.lang.RuntimeException
 import java.util.*
@@ -7,6 +8,7 @@ import java.util.*
 class ConsoleContext {
 
     private val stdinReader = Scanner(System.`in`)
+    val colors = TermColors()
 
     fun clear() {
         repeat(30) { println() }
@@ -21,7 +23,7 @@ class ConsoleContext {
     fun readInt(minValue: Int = Int.MIN_VALUE, maxValue: Int = Int.MAX_VALUE): Optional<Int> {
         return try {
             val value = Integer.parseInt(stdinReader.nextLine())
-            if (value < minValue || value > maxValue) throw RuntimeException("Constraints not met")
+            if (value < minValue || value >= maxValue) throw RuntimeException("Constraints not met")
             Optional.of(value)
         } catch (ex: Exception) {
             Optional.empty()

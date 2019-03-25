@@ -33,7 +33,7 @@ object EmployeeUI {
                             department = Lazy(it[department].toInt(10))
                     ))
                 } catch (ex: Exception) {
-                    println("Insert operation failed! ${ex.message}")
+                    Scene.replace(Error("Insert operation failed! ${ex.message}"))
                 }
             }
         }
@@ -45,14 +45,14 @@ object EmployeeUI {
             Form(listOf(employeeId)) {
                 transaction {
                     val employee = findOne<Employee>(it[employeeId].toInt(10))
-                            ?: return@Form println("Specified employee does not exists!")
+                            ?: return@Form Scene.replace(Error("Specified employee does not exists!"))
 
                     val allowedEmployeeTypes = EmployeeType.values().map { it.toString() }
 
-                    val name = FormItem.required("Full name", employee.name)
+                    val name = FormItem("Full name", employee.name)
                     val type = FormItem.oneOf("Employee type (one of ${allowedEmployeeTypes.joinToString(", ")})", employee.type.toString(), allowedEmployeeTypes)
                     val rank = FormItem("Rank (1 - 10, leave blank if non-applicable)", employee.rank?.toString())
-                    val department = FormItem.requiredId("Department ID", employee.department.id.toString())
+                    val department = FormItem("Department ID", employee.department.id.toString())
 
                     val updateForm = Form(listOf(name, type, rank, department), "[ Form - Update existing employee ]") {
                         updateOne(employee.copy(
@@ -72,8 +72,8 @@ object EmployeeUI {
 
     fun updateCases(): Drawable {
         return Menu(listOf(
-                MenuItem("Assign case to employee") { Scene.content = addCaseToEmployee() },
-                MenuItem("Dissociate case from employee") { Scene.content = removeCaseFromEmployee() }
+                MenuItem("Assign case to employee") { Scene.push(addCaseToEmployee()) },
+                MenuItem("Dissociate case from employee") { Scene.push(removeCaseFromEmployee()) }
         ), "[ Menu - Update cases of employee ]")
     }
 
@@ -88,8 +88,8 @@ object EmployeeUI {
                             case = Lazy(it[caseId].toInt(10))
                     ))
                 } catch (ex: Exception) {
-                    println("Cannot add specified employee to specified case. One of referenced entities probably " +
-                            "does not exists or the employee is already assigned to specified case.")
+                    Scene.replace(Error("Cannot add specified employee to specified case. One of referenced entities probably " +
+                            "does not exists or the employee is already assigned to specified case."))
                 }
             }
         }
@@ -103,11 +103,12 @@ object EmployeeUI {
                 val results = queryBuilder<AssignedEmployee>()
                         .select()
                         .eq("case_id", it[caseId])
+                        .and()
                         .eq("employee_id", it[employeeId])
                         .fetchMultiple()
 
                 if (results.count() == 0) {
-                    return@Form println("Specified assigment does not exists!")
+                    return@Form Scene.replace(Error("Specified assigment does not exists!"))
                 }
 
                 delete<AssignedEmployee>(results.first().id)
@@ -121,7 +122,7 @@ object EmployeeUI {
             try {
                 transaction { delete<Employee>(it[id].toInt(10)) }
             } catch (ex: Exception) {
-                println("Cannot delete employee it either does not exists or has stuff tied to him.")
+                Scene.replace(Error("Cannot delete employee it either does not exists or has stuff tied to him."))
             }
         }
     }

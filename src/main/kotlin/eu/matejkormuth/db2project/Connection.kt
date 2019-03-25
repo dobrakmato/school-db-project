@@ -18,12 +18,15 @@ class ConnectionAware(val connection: Connection) {
     val Employees by lazy { boundRepository<Employee>(connection) }
     val People by lazy { boundRepository<Person>(connection) }
     val Punishments by lazy { boundRepository<Punishment>(connection) }
+
+    val log by logger()
 }
 
-inline fun <T> transaction(block: ConnectionAware.() -> T): T {
+inline fun <T> transaction(isolation: Int = Connection.TRANSACTION_SERIALIZABLE, block: ConnectionAware.() -> T): T {
     val connection = Database.getConnection()
     val connectionAware = ConnectionAware(connection)
     connection.autoCommit = false
+    connection.transactionIsolation = isolation
     try {
         val result = connectionAware.block()
         connection.commit()
@@ -99,7 +102,7 @@ inline fun <reified K : Entity> ConnectionAware.retrieve(lazy: Lazy<K>): K? {
 }
 
 fun ConnectionAware.run(sql: Sql): Boolean = this.connection.createStatement().use {
-    println("SQL: $sql")
+    log.debug("SQL: $sql")
     return it.execute(sql)
 }
 

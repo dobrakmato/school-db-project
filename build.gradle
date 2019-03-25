@@ -19,6 +19,7 @@ dependencies {
     implementation 'com.github.javafaker:javafaker:0.17.2'
     compile 'org.slf4j:slf4j-log4j12:1.7.10'
     compile 'com.jcabi:jcabi-log:0.15'
+    implementation 'com.github.ajalt:mordant:1.2.1'
 }
 compileKotlin {
     kotlinOptions {

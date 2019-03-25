@@ -171,10 +171,13 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
 
     fun <K> eq(column: String, value: K) = where(column, "=", value)
 
-    fun <K> where(column: String, op: String, value: K): QueryBuilder<T> = fluent {
+    fun and() = fluent { sql.append(" AND") }
+
+    fun <K> where(column: String, op: String, value: K) = fluent {
         var col = column /* Need this to strip the table name in some cases */
 
-        if (!where) sql.append(" WHERE ")
+        if (!where) sql.append(" WHERE")
+        sql.append(' ')
         sql.append(column)
         sql.append(' ')
         sql.append(op)

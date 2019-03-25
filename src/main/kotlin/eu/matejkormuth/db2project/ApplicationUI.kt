@@ -1,63 +1,50 @@
 package eu.matejkormuth.db2project
 
-import eu.matejkormuth.db2project.models.Department
 import eu.matejkormuth.db2project.ui.*
 
 object ApplicationUI {
-    fun mainMenu() {
-        val employees = Menu(listOf(
-                MenuItem("List employees") { Scene.content = EmployeeUI.listEmployees() },
-                MenuItem("Create new employee") { Scene.content = EmployeeUI.createEmployee() },
-                MenuItem("Update employee information") { Scene.content = EmployeeUI.updateEmployee() },
-                MenuItem("Update cases of the employee") { Scene.content = EmployeeUI.updateCases() },
-                MenuItem("Delete an employee") { Scene.content = EmployeeUI.deleteEmployee() }
-        ))
+    fun mainMenu(): Menu {
+        val employeesMenu = Menu(listOf(
+                MenuItem("List employees") { Scene.push(EmployeeUI.listEmployees()) },
+                MenuItem("Create new employee") { Scene.push(EmployeeUI.createEmployee()) },
+                MenuItem("Update employee information") { Scene.push(EmployeeUI.updateEmployee()) },
+                MenuItem("Update cases of the employee") { Scene.push(EmployeeUI.updateCases()) },
+                MenuItem("Delete an employee") { Scene.push(EmployeeUI.deleteEmployee()) }
+        ), "[ Employees menu ]")
 
-        val departments = Menu(listOf(
-                MenuItem("List departments") { Scene.content = listDepartments() },
+        val departmentsMenu = Menu(listOf(
+                MenuItem("List departments") { Scene.push(DepartmentUI.listDepartments()) },
                 MenuItem("Create new department"),
                 MenuItem("Update department"),
                 MenuItem("Delete department")
-        ))
+        ), "[ Departments menu ]")
 
-        val cases = Menu(listOf(
+        val casesMenu = Menu(listOf(
                 MenuItem("List case information, people and crimes scenes"),
                 MenuItem("Create new case"),
                 MenuItem("Update existing case")
-        ))
+        ), "[ Cases menu ]")
 
-        val crimeScenes = Menu(listOf(
+        val crimeScenesMenu = Menu(listOf(
                 MenuItem("List crimes scenes with cases and city districts"),
                 MenuItem("Create new crime scene"),
                 MenuItem("Update existing crime scene")
-        ))
+        ), "[ Crime scenes menu ]")
 
-        val punishments = Menu(listOf(
+        val punishmentsMenu = Menu(listOf(
                 MenuItem("List punishments"),
                 MenuItem("Create new punishment")
-        ))
+        ), "[ Punishments menu ]")
 
-        val mainMenu = Menu(listOf(
-                MenuItem("Employees") { Scene.content = employees },
-                MenuItem("Departments") { Scene.content = departments },
-                MenuItem("Cases") { Scene.content = cases },
-                MenuItem("Crime scenes") { Scene.content = crimeScenes },
-                MenuItem("Punishments") { Scene.content = punishments },
-                MenuItem("☠️ Dangerous city districts") { Scene.content = dangerousCityDistricts() },
-                MenuItem("\uD83D\uDCC8 Cop of month") { Scene.content = copOfMonth() }
-        ), header = "[ ⭐⭐ POLICE DEPARTMENT - MENU ⭐⭐ ]")
-
-        Scene.content = mainMenu
-    }
-
-    /* CRUD */
-
-    private fun listDepartments(): Drawable {
-        val departments = transaction { findAll<Department>(eagerLoad = true) }
-
-        return DataTable(departments, listOf("ID", "Name", "Head employee")) {
-            listOf(it.id.toString(), it.name, it.headEmployee.getOrNull()!!.name)
-        }
+        return Menu(listOf(
+                MenuItem("Employees") { Scene.push(employeesMenu) },
+                MenuItem("Departments") { Scene.push(departmentsMenu) },
+                MenuItem("Cases") { Scene.push(casesMenu) },
+                MenuItem("Crime scenes") { Scene.push(crimeScenesMenu) },
+                MenuItem("Punishments") { Scene.push(punishmentsMenu) },
+                MenuItem("☠️ Dangerous city districts") { Scene.push(dangerousCityDistricts()) },
+                MenuItem("\uD83D\uDCC8 Cop of month") { Scene.push(copOfMonth()) }
+        ), header = "[ ⭐⭐ POLICE DEPARTMENT - MENU ⭐⭐ ]", allowBack = false)
     }
 
     /* Domain operations */

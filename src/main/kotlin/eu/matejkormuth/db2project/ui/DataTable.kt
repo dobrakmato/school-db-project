@@ -16,7 +16,11 @@ class DataTable<Row>(
         columnsWidths = IntArray(header.count()) { itr.next().length + padding }
     }
 
-    override fun handleInput(ctx: ConsoleContext) {} /* no input for DataTable */
+    override fun handleInput(ctx: ConsoleContext) {
+        ctx.text(ctx.colors.gray("Press enter to continue."))
+        ctx.readLine()
+        finish()
+    }
 
     override fun draw(ctx: ConsoleContext) {
         val renderedRows = rows.map {
@@ -27,6 +31,7 @@ class DataTable<Row>(
             row
         }
 
+        ctx.text("") /* empty line can never be bad */
         tableHeader(ctx)
         printSeparator(ctx)
         renderedRows.forEach { ctx.text(transformToRow(it)) }

@@ -42,24 +42,26 @@ fun fillTables() {
 
     val confirmed = BooleanArray(maxPersons) { Math.random() > 0.5 }
 
+    // todo: fix to reflect all constraints
+
     transaction {
         run("SET CONSTRAINTS ALL DEFERRED")
 
-        println("Creating CityDistrict objects...")
+        println(" Creating CityDistrict objects...")
         fillTable(maxCityDistricts) {
             CityDistrict(
                     name = faker.address().cityName()
             )
         }
 
-        println("Creating Category objects...")
+        println(" Creating Category objects...")
         fillTable(maxCategories) {
             Category(
                     name = faker.pokemon().location()
             )
         }
 
-        println("Creating Department objects...")
+        println(" Creating Department objects...")
         fillTable(maxDepartments) {
             Department(
                     name = faker.commerce().department(),
@@ -67,7 +69,7 @@ fun fillTables() {
             )
         }
 
-        println("Creating Employee objects...")
+        println(" Creating Employee objects...")
         fillTable(maxEmployees) {
             val type = EmployeeType.values().random()
             Employee(
@@ -81,7 +83,7 @@ fun fillTables() {
 
         val punishments = mutableListOf<Punishment>()
 
-        println("Creating Person objects...")
+        println(" Creating Person objects...")
         fillTable(maxPersons) {
             val punishment: Lazy<Punishment>? = null
             val personType = PersonType.values().random()
@@ -104,10 +106,10 @@ fun fillTables() {
             )
         }
 
-        println("Creating Punishment objects...")
+        println(" Creating Punishment objects...")
         insertMultiple(punishments)
 
-        println("Creating CrimeScene objects...")
+        println(" Creating CrimeScene objects...")
         fillTable(maxCrimeScenes) {
             CrimeScene(
                     name = faker.address().fullAddress(),
@@ -115,7 +117,7 @@ fun fillTables() {
             )
         }
 
-        println("Creating Case objects...")
+        println(" Creating Case objects...")
         fillTable(maxCases) {
             val caseType = CaseType.values().random()
             Case(
@@ -129,7 +131,7 @@ fun fillTables() {
             )
         }
 
-        println("Creating AssignedEmployee objects...")
+        println(" Creating AssignedEmployee objects...")
         fillTable(maxAssignedEmployees) {
             AssignedEmployee(
                     case = Lazy(faker.random().nextInt(maxCases) + 1),
@@ -137,7 +139,7 @@ fun fillTables() {
             )
         }
 
-        println("Creating Connection objects...")
+        println(" Creating Connection objects...")
         fillTable(maxConnections) {
             val personId = faker.random().nextInt(maxPersons) + 1
             Connection(

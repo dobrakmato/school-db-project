@@ -1,11 +1,14 @@
 package eu.matejkormuth.db2project.ui
 
-data class Text(val text: String) : Drawable {
+data class Text(val text: String, val waitForEnter: Boolean = false) : Drawable {
     override fun draw(ctx: ConsoleContext) {
         ctx.text(text)
     }
 
     override fun handleInput(ctx: ConsoleContext) {
-        // no-op
+        if (waitForEnter) {
+            ctx.readLine()
+        }
+        finish()
     }
 }
