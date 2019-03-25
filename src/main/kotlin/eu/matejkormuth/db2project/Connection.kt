@@ -36,6 +36,8 @@ inline fun <T> transaction(block: ConnectionAware.() -> T): T {
     }
 }
 
+inline fun <reified T : Entity> ConnectionAware.queryBuilder(): QueryBuilder<T> = Database.tableFor(T::class.java).queryBuilder(this.connection)
+
 inline fun <reified T : Entity> ConnectionAware.insertOne(entity: T): Lazy<T> {
     return Database.tableFor(T::class.java)
             .queryBuilder(this.connection)
@@ -57,10 +59,6 @@ inline fun <reified T : Entity> ConnectionAware.updateOne(entity: T) {
             .updateOne(entity)
 }
 
-inline fun <reified T : Entity> T.save() {
-
-}
-
 inline fun <reified T : Entity> ConnectionAware.delete(id: Id): Boolean {
     return Database.tableFor(T::class.java)
             .queryBuilder(this.connection)
@@ -80,13 +78,13 @@ inline fun <reified T : Entity> ConnectionAware.findOne(id: Id, eagerLoad: Boole
             .fetchOne()
 }
 
-inline fun <reified T : Entity> ConnectionAware.findAll(): Iterable<T> {
-    return Database.tableFor(T::class.java)
-            .queryBuilder(this.connection)
-            .select()
-            .fetchMultiple()
-}
 
+inline fun <reified T : Entity> ConnectionAware.findAll(eagerLoad: Boolean = false): Iterable<T> {
+    val table = Database.tableFor(T::class.java)
+    val qb = table.queryBuilder(this.connection)
+    if (eagerLoad) qb.selectEager() else qb.select()
+    return qb.fetchMultiple()
+}
 
 inline fun <reified T : Entity> ConnectionAware.findAll(limit: Int): Iterable<T> {
     return Database.tableFor(T::class.java)

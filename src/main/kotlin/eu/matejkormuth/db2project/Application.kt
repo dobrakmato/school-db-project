@@ -28,21 +28,6 @@ object Application {
 
         //Scene.clear()
 
-
-        val nameItem = FormItem("Name", validations = listOf(NotEmpty))
-        val typeItem = FormItem("Type (witness, suspect, victim)", validations = listOf(NotEmpty, OneOf("witness", "suspect", "victim")))
-        val form = Form(listOf(nameItem, typeItem), "Create a new Person") {
-            transaction {
-                val person = insertOne(Person(
-                        name = it.getValue(nameItem),
-                        personType = PersonType.valueOf(it.getValue(typeItem).toUpperCase())
-                ))
-
-                println(retrieve(person))
-                println("=======================")
-            }
-        }
-
         //Scene.content = form
 
         /*

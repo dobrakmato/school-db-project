@@ -3,7 +3,7 @@ package eu.matejkormuth.db2project.ui
 class Form(
         private val items: Iterable<FormItem>,
         private val header: String? = null,
-        private val onComplete: (Map<FormItem, String>) -> Unit
+        private val onComplete: (Answers) -> Unit
 ) : Drawable {
 
     private val answers = hashMapOf<FormItem, String>()
@@ -35,6 +35,10 @@ class Form(
     }
 
     private fun finish() {
-        onComplete(answers)
+        onComplete(Answers(answers))
+    }
+
+    class Answers(private val map: Map<FormItem, String>) {
+        operator fun get(item: FormItem): String = map.getValue(item)
     }
 }

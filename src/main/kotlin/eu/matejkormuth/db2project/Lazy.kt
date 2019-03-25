@@ -14,6 +14,7 @@ data class Lazy<T : Entity>(
     }
 }
 
+inline fun <reified K : Entity> Lazy<K>.getOrNull(): K? = value
 
 inline fun <reified K : Entity> Lazy<K>.get(connection: Connection): K? {
     if (value == null) {
