@@ -1,6 +1,6 @@
 package eu.matejkormuth.db2project
 
-import eu.matejkormuth.db2project.models.AssignedEmployee
+import eu.matejkormuth.db2project.models.Case
 import eu.matejkormuth.db2project.models.Employee
 import eu.matejkormuth.db2project.models.EmployeeType
 import eu.matejkormuth.db2project.ui.*
@@ -83,13 +83,13 @@ object EmployeeUI {
         return Form(listOf(caseId, employeeId), "[Form  - Add case to employee]") {
             transaction {
                 try {
-                    insertOne(AssignedEmployee(
-                            employee = Lazy(it[employeeId].toInt(10)),
-                            case = Lazy(it[caseId].toInt(10))
-                    ))
+                    val employee = findOne<Employee>(it[employeeId].toInt())
+                            ?: throw RuntimeException("Employee not found!")
+                    val case = findOne<Case>(it[caseId].toInt()) ?: throw RuntimeException("Case not found!")
+
+                    employee.assignCase(this, case)
                 } catch (ex: Exception) {
-                    Scene.replace(Error("Cannot add specified employee to specified case. One of referenced entities probably " +
-                            "does not exists or the employee is already assigned to specified case."))
+                    Scene.replace(Error("Cannot add specified employee to specified case. Detail: ${ex.message}"))
                 }
             }
         }
@@ -100,18 +100,15 @@ object EmployeeUI {
         val employeeId = FormItem.requiredId("Employee ID")
         return Form(listOf(caseId, employeeId), "[Form  - Remove case from employee]") {
             transaction {
-                val results = queryBuilder<AssignedEmployee>()
-                        .select()
-                        .eq("case_id", it[caseId])
-                        .and()
-                        .eq("employee_id", it[employeeId])
-                        .fetchMultiple()
+                try {
+                    val employee = findOne<Employee>(it[employeeId].toInt())
+                            ?: throw RuntimeException("Employee not found!")
+                    val case = findOne<Case>(it[caseId].toInt()) ?: throw RuntimeException("Case not found!")
 
-                if (results.count() == 0) {
-                    return@Form Scene.replace(Error("Specified assigment does not exists!"))
+                    employee.removeCase(this, case)
+                } catch (ex: Exception) {
+                    Scene.replace(Error("Cannot remove specified employee from specified case. Detail: ${ex.message}"))
                 }
-
-                delete<AssignedEmployee>(results.first().id)
             }
         }
     }
