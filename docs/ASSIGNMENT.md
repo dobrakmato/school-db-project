@@ -59,4 +59,4 @@ Zamestnanci policajnej stanice by mali pokrývať prípady rovnomerne podľa po�
 ### Nebezpečné mestské časti
 Pre každý mesiac, štvrťrok a rok (jedným príkazom SELECT) vypíšte tri najnebezpečnejšie mestské časti (také, kde sa udialo najviac priestupkov a trestných činov) s počtom prípadov a ich typov.
 ### Policajt mesiaca
-Pre každý mesiac vypíšte zamestnanca, ktorý (1) uzavrel najviac prípadov a (2) potvrdil najviac podozrivých. Pre oboch vypíšte aj ich predchodcov.
+Jedným príkazom SELECT vypíšte pre každý mesiac posledného roka prvých dvoch zamestnancov v rebríčkoch (1) uzavretia najväčšieho počtu prípadov a (2) potvrdenia najväčšieho počtu podozrivých.
