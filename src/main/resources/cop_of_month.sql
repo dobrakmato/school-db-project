@@ -1,27 +1,30 @@
-SELECT month,
-       e1.name as max_cases_name,
-       e2.name as max_connection_name
-FROM (SELECT
-        -- Month Number --
-        m         as month,
-
-        -- Employee with max closed cases for specific month --
-        (SELECT closed_by_id
-         FROM cases
-         WHERE EXTRACT(MONTH FROM created_at) = m
-           AND closed_by_id IS NOT NULL
-         GROUP BY closed_by_id
-         ORDER BY COUNT(*) DESC
-         LIMIT 1) as max_closed_cases,
-
-        -- Employee with max confirmed cases for specific month --
-        (SELECT confirmed_by_id
-         FROM connections
-         WHERE EXTRACT(MONTH FROM confirmed_at) = m
-           AND confirmed_by_id IS NOT NULL
-         GROUP BY confirmed_by_id
-         ORDER BY COUNT(*) DESC
-         LIMIT 1) as max_confirmed_connections
-      FROM generate_series(1, 12) as m) x
-       JOIN employees e1 ON max_closed_cases = e1.id
-       JOIN employees e2 ON max_confirmed_connections = e2.id
+SELECT a.month,
+       a.row_num,
+       a.closed_by_id,
+       a.closed_cases,
+       b.row_num as b_row_num,
+       b.confirmed_by_id,
+       b.confirmed_cases
+FROM (SELECT EXTRACT(MONTH FROM created_at)                                                         as month,
+             closed_by_id,
+             count(*)                                                                               as closed_cases,
+             ROW_NUMBER() OVER (PARTITION BY EXTRACT(MONTH FROM created_at) ORDER BY count(*) DESC) as row_num
+      FROM cases
+      WHERE EXTRACT(YEAR FROM created_at) = 2019
+        AND closed_by_id IS NOT NULL
+      GROUP BY EXTRACT(MONTH FROM created_at), closed_by_id) a
+       JOIN (
+  SELECT EXTRACT(MONTH FROM confirmed_at)                                                         as month,
+         confirmed_by_id,
+         count(*)                                                                                 as confirmed_cases,
+         ROW_NUMBER() OVER (PARTITION BY EXTRACT(MONTH FROM confirmed_at) ORDER BY count(*) DESC) as row_num
+  FROM connections
+         JOIN persons p on connections.person_id = p.id
+  WHERE EXTRACT(YEAR FROM confirmed_at) = 2019
+    AND p.person_type = 0 /* podozrivy */
+    AND confirmed_by_id IS NOT NULL
+  GROUP BY EXTRACT(MONTH FROM confirmed_at), confirmed_by_id
+) b ON a.month = b.month AND a.row_num = b.row_num
+WHERE a.row_num < 3
+   OR b.row_num < 3
+ORDER BY a.month ASC, a.closed_cases DESC
