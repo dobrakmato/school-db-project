@@ -33,6 +33,7 @@ object EmployeeUI {
                             department = Lazy(it[department].toInt(10))
                     ))
                 } catch (ex: Exception) {
+                    rollback()
                     Scene.replace(Error("Insert operation failed! ${ex.message}"))
                 }
             }
@@ -89,6 +90,7 @@ object EmployeeUI {
 
                     employee.assignCase(this, case)
                 } catch (ex: Exception) {
+                    rollback()
                     Scene.replace(Error("Cannot add specified employee to specified case. Detail: ${ex.message}"))
                 }
             }
@@ -107,6 +109,7 @@ object EmployeeUI {
 
                     employee.removeCase(this, case)
                 } catch (ex: Exception) {
+                    rollback()
                     Scene.replace(Error("Cannot remove specified employee from specified case. Detail: ${ex.message}"))
                 }
             }

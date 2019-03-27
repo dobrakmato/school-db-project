@@ -32,15 +32,15 @@ object ApplicationUI {
         ), "[ Crime scenes menu ]")
 
         val punishmentsMenu = Menu(listOf(
-                MenuItem("List punishments"),
-                MenuItem("Create new punishment")
+                MenuItem("List punishments") { Scene.push(PunishmentUI.listPunishments()) },
+                MenuItem("Create new punishment") { Scene.push(PunishmentUI.createPunishment()) }
         ), "[ Punishments menu ]")
 
         return Menu(listOf(
                 MenuItem("Employees") { Scene.push(employeesMenu) },
-                MenuItem("Departments") { Scene.push(departmentsMenu) },
-                MenuItem("Cases") { Scene.push(casesMenu) },
-                MenuItem("Crime scenes") { Scene.push(crimeScenesMenu) },
+                MenuItem("\uD83D\uDED1 Departments") { Scene.push(departmentsMenu) },
+                MenuItem("\uD83D\uDED1 Cases") { Scene.push(casesMenu) },
+                MenuItem("\uD83D\uDED1 Crime scenes") { Scene.push(crimeScenesMenu) },
                 MenuItem("Punishments") { Scene.push(punishmentsMenu) },
                 MenuItem("☠️ Dangerous city districts") { Scene.push(dangerousCityDistricts()) },
                 MenuItem("\uD83D\uDCC8 Cop of month") { Scene.push(copOfMonth()) }
@@ -56,14 +56,44 @@ object ApplicationUI {
     }
 
     private fun copOfMonth(): Drawable {
+        data class CopOfMonth(
+                val month: Int,
+                val closedPosition: Int,
+                val closedBy: String,
+                val closedCount: Int,
+                val confirmedPosition: Int,
+                val confirmedBy: String,
+                val confirmedCount: Int
+        )
+
         val rows = transaction {
             runQuery(loadQuery("/cop_of_month.sql")) { rs ->
-                rs.use { it.map { Triple(getInt(1), getString(2), getString(3)) } }
+                rs.use {
+                    it.map {
+                        CopOfMonth(
+                                getInt("month"),
+                                getInt("closed_position"),
+                                getString("closed_by"),
+                                getInt("closed_cases"),
+                                getInt("confirmed_position"),
+                                getString("confirmed_by"),
+                                getInt("confirmed_cases")
+                        )
+                    }
+                }
             }
         }
 
-        return DataTable(rows, listOf("Month", "Max closed cases", "Max confirmed connections")) {
-            listOf(it.first.toString(), it.second, it.third)
+        return DataTable(rows, listOf("Month", "#", "Closed by", "Closed count", "#", "Confirmed by", "Confirmed count")) {
+            listOf(
+                    it.month.toString(),
+                    it.closedPosition.toString(),
+                    it.closedBy,
+                    it.closedCount.toString(),
+                    it.confirmedPosition.toString(),
+                    it.confirmedBy,
+                    it.confirmedCount.toString()
+            )
         }
     }
 }

@@ -10,7 +10,7 @@ data class Employee(
         @Maybe val rank: Int? = null
 ) : Entity() {
 
-    fun assignCase(connectionAware: ConnectionAware, case: Case) {
+    fun assignCase(connectionAware: ConnectionAware, case: Case): Lazy<AssignedEmployee> {
         /* validate domain logic */
         if (type == EmployeeType.IKT_OFFICER)
             throw RuntimeException("IKT_OFFICER cannot be assigned to cases!")
@@ -19,7 +19,7 @@ data class Employee(
             throw RuntimeException("INVESTIGATOR cannot be assigned to cases other than CRIME!")
 
         /* perform the write */
-        connectionAware.insertOne(AssignedEmployee(
+        return connectionAware.insertOne(AssignedEmployee(
                 employee = Lazy(id),
                 case = Lazy(case.id)
         ))

@@ -2,6 +2,7 @@ package eu.matejkormuth.db2project
 
 import com.github.javafaker.Faker
 import eu.matejkormuth.db2project.models.*
+import java.lang.RuntimeException
 import java.util.concurrent.TimeUnit
 
 fun createTables() {
@@ -27,89 +28,50 @@ inline fun <reified T : Entity> ConnectionAware.fillTable(count: Int, crossinlin
     insertMultiple(seq.take(count).asIterable(), 100) // with 100 rows it runs very fast
 }
 
+var start: Long = 0
+
+fun perf(msg: String) {
+    val time = System.currentTimeMillis() - start
+    println(" [$time ms] $msg")
+}
+
 fun fillTables() {
     val faker = Faker()
 
     val maxCityDistricts = 30
-    val maxPersons = 10000
-    val maxConnections = 8000
     val maxEmployees = 500
-    val maxAssignedEmployees = 700
     val maxDepartments = 30
     val maxCategories = 30
     val maxCrimeScenes = 800
     val maxCases = 4000
 
-    val confirmed = BooleanArray(maxPersons) { Math.random() > 0.5 }
-
-    // todo: fix to reflect all constraints
-
     transaction {
-        run("SET CONSTRAINTS ALL DEFERRED")
 
-        println(" Creating CityDistrict objects...")
+        /* do foreign key checks at commit-time */
+        run("SET CONSTRAINTS ALL DEFERRED")
+        start = System.currentTimeMillis()
+
+        perf("Creating $maxCityDistricts CityDistrict objects...")
         fillTable(maxCityDistricts) {
             CityDistrict(
                     name = faker.address().cityName()
             )
         }
 
-        println(" Creating Category objects...")
+        val categories = mutableListOf<Category>()
+
+        perf("Creating $maxCategories Category objects...")
         fillTable(maxCategories) {
-            Category(
-                    name = faker.pokemon().location()
+            val category = Category(
+                    id = it + 1,
+                    name = faker.pokemon().location(),
+                    fineAmount = faker.random().nextInt(1000)
             )
+            categories.add(category)
+            category
         }
 
-        println(" Creating Department objects...")
-        fillTable(maxDepartments) {
-            Department(
-                    name = faker.commerce().department(),
-                    headEmployee = Lazy(faker.random().nextInt(maxEmployees) + 1)
-            )
-        }
-
-        println(" Creating Employee objects...")
-        fillTable(maxEmployees) {
-            val type = EmployeeType.values().random()
-            Employee(
-                    name = faker.name().fullName(),
-                    type = type,
-                    department = Lazy(faker.random().nextInt(maxDepartments) + 1),
-                    rank = if (type == EmployeeType.POLICEMAN) faker.random().nextInt(20) else null
-            )
-        }
-
-
-        val punishments = mutableListOf<Punishment>()
-
-        println(" Creating Person objects...")
-        fillTable(maxPersons) {
-            val punishment: Lazy<Punishment>? = null
-            val personType = PersonType.values().random()
-
-            if (personType == PersonType.SUSPECT && confirmed[it]) {
-                val punishmentType = PunishmentType.values().random()
-                val maxFineAmount = 2000
-                punishments.add(Punishment(
-                        punishmentType = punishmentType,
-                        fineAmount = if (punishmentType == PunishmentType.FINE) {
-                            faker.random().nextInt(maxFineAmount)
-                        } else null
-                ))
-            }
-
-            Person(
-                    name = faker.funnyName().name(),
-                    personType = personType,
-                    punishment = punishment
-            )
-        }
-
-        println(" Creating Punishment objects...")
-        insertMultiple(punishments)
-
-        println(" Creating CrimeScene objects...")
+        perf("Creating $maxCrimeScenes CrimeScene objects...")
         fillTable(maxCrimeScenes) {
             CrimeScene(
                     name = faker.address().fullAddress(),
@@ -117,38 +79,147 @@ fun fillTables() {
             )
         }
 
-        println(" Creating Case objects...")
-        fillTable(maxCases) {
+        /* ------------------------------------------------- */
+
+        perf("Creating $maxDepartments Department objects...")
+        fillTable(maxDepartments) {
+            Department(
+                    name = faker.commerce().department(),
+                    headEmployee = Lazy(faker.random().nextInt(maxEmployees) + 1)
+            )
+        }
+
+        val canWorkOnMisdemeanors = mutableListOf<Employee>()
+        val canWorkOnCrimes = mutableListOf<Employee>()
+        val canWorkOnProtectiveActions = mutableListOf<Employee>()
+        val canBeHeadEmployee = mutableListOf<Employee>()
+        val canCreateArrestWarrants = mutableListOf<Employee>()
+        val canCreateFines = mutableListOf<Employee>()
+        val canConfirmConnections = mutableListOf<Employee>()
+
+        perf("Creating $maxEmployees Employee objects...")
+        fillTable(maxEmployees) {
+            val type = EmployeeType.values().random()
+            val employee = Employee(
+                    id = it + 1,
+                    name = faker.name().fullName(),
+                    type = type,
+                    department = Lazy(faker.random().nextInt(maxDepartments) + 1),
+                    rank = if (type == EmployeeType.POLICEMAN) faker.random().nextInt(20) else null
+            )
+
+            /* add generated employee to groups */
+            if (type.canWorkOnMisdemeanors()) canWorkOnMisdemeanors.add(employee)
+            if (type.canWorkOnCrimes()) canWorkOnCrimes.add(employee)
+            if (type.canWorkOnProtectiveActions()) canWorkOnProtectiveActions.add(employee)
+            if (type.canBeCaseHeadEmployee()) canBeHeadEmployee.add(employee)
+            if (type.canCreateArrestWarrant()) canCreateArrestWarrants.add(employee)
+            if (type.canCreateFine()) canCreateFines.add(employee)
+            if (type.canConfirmConnection()) canConfirmConnections.add(employee)
+
+            employee
+        }
+
+
+        /* -------------------------------- */
+
+        val cases = mutableListOf<Case>()
+        val punishments = mutableListOf<Punishment>()
+        val people = mutableListOf<Person>()
+        val connections = mutableListOf<Connection>()
+        val assignedEmployees = mutableListOf<AssignedEmployee>()
+
+        perf("Generating Cases, Connections, AssignedEmployees, Persons, Punishments data...")
+        repeat(maxCases) {
             val caseType = CaseType.values().random()
-            Case(
+            val shouldBeClosed = faker.random().nextBoolean()
+
+            val caseCategory = categories[faker.random().nextInt(maxCategories)]
+
+            val case = Case(
+                    id = it + 1,
                     description = faker.book().title(),
-                    headEmployee = Lazy(faker.random().nextInt(maxEmployees) + 1),
+                    headEmployee = Lazy(canBeHeadEmployee.random().id),
                     caseType = caseType,
-                    closedBy = if (faker.random().nextDouble() > 0.3) Lazy(faker.random().nextInt(maxEmployees) + 1) else null,
-                    caseCategory = Lazy(faker.random().nextInt(maxCategories) + 1),
+                    closedBy = if (shouldBeClosed) Lazy(faker.random().nextInt(maxEmployees) + 1) else null,
+                    caseCategory = Lazy(caseCategory.id),
                     protectiveActionPlace = if (caseType == CaseType.PROTECTIVE_ACTION) Lazy(faker.random().nextInt(maxCrimeScenes) + 1) else null,
                     createdAt = faker.date().past(365, TimeUnit.DAYS).toInstant()
             )
+            cases.add(case)
+
+            /* generate connections if not protective action */
+            if (caseType != CaseType.PROTECTIVE_ACTION) {
+                repeat(faker.random().nextInt(5, 50)) {
+                    val personType = PersonType.values().random()
+                    val mustBeConfirmed = shouldBeClosed && personType != PersonType.WITNESS
+                    val mustBePunished = mustBeConfirmed /* seems to be the same */
+
+                    val person = Person(
+                            id = people.size + 1,
+                            name = faker.funnyName().name(),
+                            personType = personType
+                    )
+                    people.add(person)
+
+                    val isConfirmed = if (mustBeConfirmed) true else faker.random().nextBoolean()
+
+                    val connection = Connection(
+                            case = Lazy(case.id),
+                            person = Lazy(person.id),
+                            crimeScene = Lazy(faker.random().nextInt(maxCrimeScenes) + 1),
+                            confirmedBy = if (isConfirmed) Lazy(canConfirmConnections.random().id) else null,
+                            confirmedAt = if (isConfirmed) faker.date().past(365, TimeUnit.DAYS).toInstant() else null
+                    )
+
+                    connections.add(connection)
+
+                    /* generate punishments */
+                    if (mustBePunished) {
+                        val punishmentType = when (caseType) {
+                            CaseType.MISDEMEANOR -> PunishmentType.FINE
+                            CaseType.CRIME -> PunishmentType.ARREST_WARRANT
+                            else -> throw RuntimeException("Should not happen")
+                        }
+
+                        punishments.add(Punishment(
+                                punished = Lazy(person.id),
+                                punishmentType = punishmentType,
+                                fineAmount = if (punishmentType == PunishmentType.ARREST_WARRANT) null else caseCategory.fineAmount
+                        ))
+                    }
+                }
+            }
+
+            /* assign employees to case */
+            repeat(faker.random().nextInt(3, 30)) {
+                val assigned = when (caseType) {
+                    CaseType.MISDEMEANOR -> canWorkOnMisdemeanors.random()
+                    CaseType.CRIME -> canWorkOnCrimes.random()
+                    CaseType.PROTECTIVE_ACTION -> canWorkOnProtectiveActions.random()
+                }
+
+                assignedEmployees.add(AssignedEmployee(
+                        case = Lazy(case.id),
+                        employee = Lazy(assigned.id)
+                ))
+            }
         }
 
-        println(" Creating AssignedEmployee objects...")
-        fillTable(maxAssignedEmployees) {
-            AssignedEmployee(
-                    case = Lazy(faker.random().nextInt(maxCases) + 1),
-                    employee = Lazy(faker.random().nextInt(maxEmployees) + 1)
-            )
-        }
 
-        println(" Creating Connection objects...")
-        fillTable(maxConnections) {
-            val personId = faker.random().nextInt(maxPersons) + 1
-            Connection(
-                    case = Lazy(faker.random().nextInt(maxCases) + 1),
-                    person = Lazy(personId),
-                    crimeScene = Lazy(faker.random().nextInt(maxCrimeScenes) + 1),
-                    confirmedBy = if (confirmed[personId - 1]) Lazy(faker.random().nextInt(maxEmployees) + 1) else null,
-                    confirmedAt = if (confirmed[personId - 1]) faker.date().past(365, TimeUnit.DAYS).toInstant() else null
-            )
-        }
+        perf("Inserting ${connections.size} Connection objects...")
+        insertMultiple(connections, maxRowsAtOnce = 100)
+
+        perf("Inserting ${people.size} Person objects...")
+        insertMultiple(people, maxRowsAtOnce = 100)
+
+        perf("Inserting ${punishments.size} Punishment objects...")
+        insertMultiple(punishments, maxRowsAtOnce = 100)
+
+        perf("Inserting ${assignedEmployees.size} AssignedEmployee objects...")
+        insertMultiple(assignedEmployees, maxRowsAtOnce = 100)
+
+        perf("Inserting ${cases.size} Case objects...")
+        insertMultiple(cases, maxRowsAtOnce = 100)
     }
 }
