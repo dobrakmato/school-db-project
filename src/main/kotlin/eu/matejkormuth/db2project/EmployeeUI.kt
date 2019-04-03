@@ -52,7 +52,7 @@ object EmployeeUI {
                     val allowedEmployeeTypes = EmployeeType.values().map { it.toString() }
 
                     val name = FormItem("Full name", employee.name)
-                    val type = FormItem.oneOf("Employee type (one of ${allowedEmployeeTypes.joinToString(", ")})", employee.type.toString(), allowedEmployeeTypes)
+                    val type = FormItem.oneOfOptional("Employee type (one of ${allowedEmployeeTypes.joinToString(", ")})", employee.type.toString(), allowedEmployeeTypes)
                     val rank = FormItem("Rank (1 - 10, leave blank if non-applicable)", employee.rank?.toString())
                     val department = FormItem("Department ID", employee.department.id.toString())
 
@@ -63,13 +63,13 @@ object EmployeeUI {
                                 rank = it[rank].toIntOrNull(),
                                 department = Lazy(it[department].toInt())
                         ))
+                        Scene.replace(Success("Employee updated!"))
                     }
 
                     updateForm.draw(ctx)
                     updateForm.handleInput(ctx)
                 }
             }.handleInput(ctx)
-            Scene.replace(Success("Employee updated!"))
         }
     }
 

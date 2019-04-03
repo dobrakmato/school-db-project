@@ -4,6 +4,7 @@ import com.github.javafaker.Faker
 import eu.matejkormuth.db2project.models.*
 import java.lang.RuntimeException
 import java.util.concurrent.TimeUnit
+import kotlin.math.asin
 
 fun createTables() {
     transaction {
@@ -19,6 +20,7 @@ fun createTables() {
                 Person::class.java,
                 Punishment::class.java
         ).forEach { sql -> run(sql) }
+        run("ALTER TABLE assigned_employees ADD CONSTRAINT uniq_case_empl UNIQUE (case_id, employee_id)")
     }
 }
 
@@ -192,6 +194,7 @@ fun fillTables() {
             }
 
             /* assign employees to case */
+            val dedupe = mutableSetOf<Employee>()
             repeat(faker.random().nextInt(3, 30)) {
                 val assigned = when (caseType) {
                     CaseType.MISDEMEANOR -> canWorkOnMisdemeanors.random()
@@ -199,10 +202,13 @@ fun fillTables() {
                     CaseType.PROTECTIVE_ACTION -> canWorkOnProtectiveActions.random()
                 }
 
-                assignedEmployees.add(AssignedEmployee(
-                        case = Lazy(case.id),
-                        employee = Lazy(assigned.id)
-                ))
+                if (assigned !in dedupe) {
+                    assignedEmployees.add(AssignedEmployee(
+                            case = Lazy(case.id),
+                            employee = Lazy(assigned.id)
+                    ))
+                    dedupe.add(assigned)
+                }
             }
         }
 

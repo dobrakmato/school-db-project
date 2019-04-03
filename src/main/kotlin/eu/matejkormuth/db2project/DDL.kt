@@ -50,6 +50,12 @@ object DDL {
             }
         }
 
+        fun createIndices(table: Table<out Entity>): Iterable<String> {
+            return table.columns.values.filter { it.isUnique }.map {
+                "ALTER TABLE ${table.name} ADD CONSTRAINT uniq_${it.name} UNIQUE (${it.name})"
+            }
+        }
+
         fun createTableQueries(table: Table<out Entity>): Sql {
             var sql = "DROP TABLE IF EXISTS ${table.name} CASCADE; CREATE TABLE IF NOT EXISTS ${table.name} (\n"
             table.columns.values.forEach {
@@ -64,8 +70,9 @@ object DDL {
 
         val create = tables.map { Database.tableFor(it) }.map { createTableQueries(it) }.toList()
         val fk = tables.map { Database.tableFor(it) }.flatMap { createForeignKeys(it) }.toList()
+        val uniq = tables.map { Database.tableFor(it) }.flatMap { createIndices(it) }.toList()
 
-        return create + fk
+        return create + fk + uniq
     }
 
 }

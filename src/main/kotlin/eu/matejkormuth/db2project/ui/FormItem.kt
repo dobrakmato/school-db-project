@@ -13,5 +13,7 @@ data class FormItem(
         fun requiredId(text: String, defaultValue: String? = null) = FormItem(text, defaultValue, listOf(NotEmpty, IsInt))
 
         fun oneOf(text: String, defaultValue: String? = null, possible: Iterable<String>) = FormItem(text, defaultValue, listOf(NotEmpty, OneOf(possible)))
+
+        fun oneOfOptional(text: String, defaultValue: String? = null, possible: Iterable<String>) = FormItem(text, defaultValue, listOf(OneOf(possible + "")))
     }
 }

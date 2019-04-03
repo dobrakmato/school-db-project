@@ -36,7 +36,12 @@ class Form(
             val answer = ctx.readLine()
             isValid = it.validate(answer)
             if (!isValid) continue
-            answers[it] = answer
+
+            if (answer.isEmpty() && it.defaultValue != null) {
+                answers[it] = it.defaultValue
+            } else {
+                answers[it] = answer
+            }
         }
     }
 
