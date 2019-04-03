@@ -13,7 +13,7 @@ data class Person(
         if (personType != PersonType.SUSPECT) throw RuntimeException("You can only punish SUSPECTS.")
 
         val connection = connectionAware.find<Connection>(eagerLoad = true)
-                .eq("person", id)
+                .eq("person_id", id)
                 .fetchOne()
 
         /* can only punish confirmed people */

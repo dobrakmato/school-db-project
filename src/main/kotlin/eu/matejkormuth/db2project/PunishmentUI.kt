@@ -23,6 +23,7 @@ object PunishmentUI {
                     val person = findOne<Person>(it[personId].toInt()) ?: throw RuntimeException("Person not found!")
 
                     person.punish(this)
+                    Scene.replace(Success("Person punished."))
                 } catch (ex: Exception) {
                     rollback()
                     Scene.replace(Error("Cannot punish specified person. Detail: ${ex.message}"))

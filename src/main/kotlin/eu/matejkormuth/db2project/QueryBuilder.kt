@@ -205,6 +205,10 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
 
     fun fetchOne(): T? = fetchMultiple().firstOrNull()
 
+    fun orderBy(column: String) = fluent {
+        sql.append(" ORDER BY ${if (eager) "${table.name}." else ""}$column")
+    }
+
     fun fetchMultiple(): Iterable<T> {
         val list = mutableListOf<T>()
 

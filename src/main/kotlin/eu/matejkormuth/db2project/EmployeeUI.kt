@@ -26,12 +26,13 @@ object EmployeeUI {
         return Form(listOf(name, type, rank, department), "[ Form - Create new employee ]") {
             transaction {
                 try {
-                    insertOne(Employee(
+                    val employee = insertOne(Employee(
                             name = it[name],
                             type = EmployeeType.valueOf(it[type].toUpperCase()),
                             rank = it[rank].toIntOrNull(10),
                             department = Lazy(it[department].toInt(10))
                     ))
+                    Scene.replace(Success("Employee inserted successfully ID: ${employee.id}"))
                 } catch (ex: Exception) {
                     rollback()
                     Scene.replace(Error("Insert operation failed! ${ex.message}"))
@@ -68,6 +69,7 @@ object EmployeeUI {
                     updateForm.handleInput(ctx)
                 }
             }.handleInput(ctx)
+            Scene.replace(Success("Employee updated!"))
         }
     }
 
@@ -89,6 +91,7 @@ object EmployeeUI {
                     val case = findOne<Case>(it[caseId].toInt()) ?: throw RuntimeException("Case not found!")
 
                     employee.assignCase(this, case)
+                    Scene.replace(Success("Case assigned!"))
                 } catch (ex: Exception) {
                     rollback()
                     Scene.replace(Error("Cannot add specified employee to specified case. Detail: ${ex.message}"))
@@ -108,6 +111,7 @@ object EmployeeUI {
                     val case = findOne<Case>(it[caseId].toInt()) ?: throw RuntimeException("Case not found!")
 
                     employee.removeCase(this, case)
+                    Scene.replace(Success("Case removed!"))
                 } catch (ex: Exception) {
                     rollback()
                     Scene.replace(Error("Cannot remove specified employee from specified case. Detail: ${ex.message}"))
@@ -121,6 +125,7 @@ object EmployeeUI {
         return Form(listOf(id), "[ Form - Delete existing employee ]") {
             try {
                 transaction { delete<Employee>(it[id].toInt(10)) }
+                Scene.replace(Success("Success!"))
             } catch (ex: Exception) {
                 Scene.replace(Error("Cannot delete employee it either does not exists or has stuff tied to him."))
             }

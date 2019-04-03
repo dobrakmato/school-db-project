@@ -93,6 +93,7 @@ inline fun <reified T : Entity> ConnectionAware.findAll(eagerLoad: Boolean = fal
     val table = Database.tableFor(T::class.java)
     val qb = table.queryBuilder(this.connection)
     if (eagerLoad) qb.selectEager() else qb.select()
+    qb.orderBy("id")
     return qb.fetchMultiple()
 }
 

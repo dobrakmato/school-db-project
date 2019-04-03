@@ -15,6 +15,12 @@ simple home-made ORM which is using Java Reflection API to instantiate and intro
 
 It also has simple console UI to allow users to interact with database. 
 
+### Database
+
+```
+docker run --rm -p 5432:5432 -e POSTGRES_PASSWORD=root postgres
+```
+
 ### FAQ
 
 #### Why Hikari and not connection pooling in JDBC driver.

@@ -1,5 +1,6 @@
 package eu.matejkormuth.db2project
 
+import eu.matejkormuth.db2project.models.CopOfMonth
 import eu.matejkormuth.db2project.ui.*
 
 object ApplicationUI {
@@ -14,15 +15,16 @@ object ApplicationUI {
 
         val departmentsMenu = Menu(listOf(
                 MenuItem("List departments") { Scene.push(DepartmentUI.listDepartments()) },
-                MenuItem("Create new department"),
-                MenuItem("Update department"),
-                MenuItem("Delete department")
+                MenuItem("Create new department") { Scene.push(DepartmentUI.createDepartment()) },
+                MenuItem("Update department") { Scene.push(DepartmentUI.updateDepartment()) },
+                MenuItem("Delete department") { Scene.push(DepartmentUI.deleteDepartment()) }
         ), "[ Departments menu ]")
 
         val casesMenu = Menu(listOf(
-                MenuItem("List case information, people and crimes scenes"),
-                MenuItem("Create new case"),
-                MenuItem("Update existing case")
+                MenuItem("List case information, people and crimes scenes") { Scene.push(CaseUI.listCase()) },
+                MenuItem("Create new case") { Scene.push(CaseUI.createCase()) },
+                MenuItem("Close case") { Scene.push(CaseUI.closeCase()) },
+                MenuItem("Update existing case") { Scene.push(CaseUI.updateCase()) }
         ), "[ Cases menu ]")
 
         val crimeScenesMenu = Menu(listOf(
@@ -42,7 +44,7 @@ object ApplicationUI {
                 MenuItem("\uD83D\uDED1 Cases") { Scene.push(casesMenu) },
                 MenuItem("\uD83D\uDED1 Crime scenes") { Scene.push(crimeScenesMenu) },
                 MenuItem("Punishments") { Scene.push(punishmentsMenu) },
-                MenuItem("☠️ Dangerous city districts") { Scene.push(dangerousCityDistricts()) },
+                MenuItem("\uD83D\uDED1 ☠️ Dangerous city districts") { Scene.push(dangerousCityDistricts()) },
                 MenuItem("\uD83D\uDCC8 Cop of month") { Scene.push(copOfMonth()) }
         ), header = "[ ⭐⭐ POLICE DEPARTMENT - MENU ⭐⭐ ]", allowBack = false)
     }
@@ -56,34 +58,7 @@ object ApplicationUI {
     }
 
     private fun copOfMonth(): Drawable {
-        data class CopOfMonth(
-                val month: Int,
-                val closedPosition: Int,
-                val closedBy: String,
-                val closedCount: Int,
-                val confirmedPosition: Int,
-                val confirmedBy: String,
-                val confirmedCount: Int
-        )
-
-        val rows = transaction {
-            runQuery(loadQuery("/cop_of_month.sql")) { rs ->
-                rs.use {
-                    it.map {
-                        CopOfMonth(
-                                getInt("month"),
-                                getInt("closed_position"),
-                                getString("closed_by"),
-                                getInt("closed_cases"),
-                                getInt("confirmed_position"),
-                                getString("confirmed_by"),
-                                getInt("confirmed_cases")
-                        )
-                    }
-                }
-            }
-        }
-
+        val rows = CopOfMonth.getAllRows()
         return DataTable(rows, listOf("Month", "#", "Closed by", "Closed count", "#", "Confirmed by", "Confirmed count")) {
             listOf(
                     it.month.toString(),
