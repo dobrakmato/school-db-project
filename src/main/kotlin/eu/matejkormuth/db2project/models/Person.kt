@@ -30,7 +30,7 @@ data class Person(
         return connectionAware.insertOne(Punishment(
                 punished = Lazy(id),
                 punishmentType = punishmentType,
-                fineAmount = caseCategory.fineAmount
+                fineAmount = if (punishmentType == PunishmentType.FINE) caseCategory.fineAmount else null
         ))
     }
 
