@@ -24,13 +24,4 @@ object Database {
     fun <T : Entity> tableFor(klass: Class<T>): Table<T> {
         return tableCache.getOrPut(klass) { Table(klass) } as Table<T>
     }
-
-    fun run(sql: String) {
-        getConnection().use {
-            it.createStatement().use { stmt ->
-                stmt.execute(sql)
-            }
-        }
-    }
-
 }

@@ -22,6 +22,8 @@ object CaseUI {
                         ctx.text("|           CASE DETAILS           |")
                         ctx.text("+----------------------------------+")
                         ctx.text("")
+
+                        //todo: refactor to custom class
                         ctx.text("ID: ${case.id}")
                         ctx.text("Description: ${case.description}")
                         ctx.text("Category: ${case.caseCategory.getOrNull()!!.name}")
