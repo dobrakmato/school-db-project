@@ -10,32 +10,46 @@ data class Employee(
         @Maybe val rank: Int? = null
 ) : Entity() {
 
-    fun assignCase(connectionAware: ConnectionAware, case: Case): Lazy<AssignedEmployee> {
-        /* validate domain logic */
-        if (type == EmployeeType.IKT_OFFICER)
-            throw RuntimeException("IKT_OFFICER cannot be assigned to cases!")
+    companion object {
+        fun assignCase(employeeId: Id, caseId: Id): Lazy<AssignedEmployee> {
+            transaction {
+                val employee = findOne<Employee>(employeeId, forUpdate = true)
+                        ?: throw RuntimeException("Employee does not exists!")
+                val case = findOne<Case>(caseId, forUpdate = true) ?: throw RuntimeException("Case does not exists!")
 
-        if (type == EmployeeType.INVESTIGATOR && case.caseType != CaseType.CRIME)
-            throw RuntimeException("INVESTIGATOR cannot be assigned to cases other than CRIME!")
+                /* validate domain logic */
+                if (employee.type == EmployeeType.IKT_OFFICER)
+                    throw RuntimeException("IKT_OFFICER cannot be assigned to cases!")
 
-        /* perform the write */
-        return connectionAware.insertOne(AssignedEmployee(
-                employee = Lazy(id),
-                case = Lazy(case.id)
-        ))
+                if (employee.type == EmployeeType.INVESTIGATOR && case.caseType != CaseType.CRIME)
+                    throw RuntimeException("INVESTIGATOR cannot be assigned to cases other than CRIME!")
+
+                /* perform the write */
+                return insertOne(AssignedEmployee(
+                        employee = Lazy(employee.id),
+                        case = Lazy(case.id)
+                ))
+            }
+        }
+
+        fun removeCase(employeeId: Id, caseId: Id) {
+            transaction {
+                val employee = findOne<Employee>(employeeId, forUpdate = true)
+                        ?: throw RuntimeException("Employee does not exists!")
+                val case = findOne<Case>(caseId, forUpdate = true) ?: throw RuntimeException("Case does not exists!")
+                val results = queryBuilder<AssignedEmployee>()
+                        .select()
+                        .eq("case_id", case.id)
+                        .and()
+                        .eq("employee_id", employee.id)
+                        .fetchMultiple()
+
+                if (results.count() == 0) throw RuntimeException("Specified assigment does not exists!")
+
+                delete<AssignedEmployee>(results.first().id)
+            }
+        }
     }
 
-    fun removeCase(connectionAware: ConnectionAware, case: Case) {
-        val results = connectionAware.queryBuilder<AssignedEmployee>()
-                .select()
-                .eq("case_id", case.id)
-                .and()
-                .eq("employee_id", id)
-                .fetchMultiple()
-
-        if (results.count() == 0) throw RuntimeException("Specified assigment does not exists!")
-
-        connectionAware.delete<AssignedEmployee>(results.first().id)
-    }
 
 }

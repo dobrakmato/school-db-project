@@ -1,7 +1,6 @@
 package eu.matejkormuth.db2project.screens
 
 import eu.matejkormuth.db2project.*
-import eu.matejkormuth.db2project.models.Case
 import eu.matejkormuth.db2project.models.Employee
 import eu.matejkormuth.db2project.models.EmployeeType
 import eu.matejkormuth.db2project.ui.*
@@ -47,7 +46,7 @@ object EmployeeUI {
             val employeeId = FormItem.requiredId("Employee ID (to update)")
             Form(listOf(employeeId)) {
                 transaction {
-                    val employee = findOne<Employee>(it[employeeId].toInt(10))
+                    val employee = findOne<Employee>(it[employeeId].toInt(10), forUpdate = true)
                             ?: return@Form Scene.replace(Error("Specified employee does not exists!"))
 
                     val allowedEmployeeTypes = EmployeeType.values().map { it.toString() }
@@ -87,11 +86,7 @@ object EmployeeUI {
         return Form(listOf(caseId, employeeId), "[Form  - Add case to employee]") {
             transaction {
                 try {
-                    val employee = findOne<Employee>(it[employeeId].toInt())
-                            ?: throw RuntimeException("Employee not found!")
-                    val case = findOne<Case>(it[caseId].toInt()) ?: throw RuntimeException("Case not found!")
-
-                    employee.assignCase(this, case)
+                    Employee.assignCase(it[employeeId].toInt(), it[caseId].toInt())
                     Scene.replace(Success("Case assigned!"))
                 } catch (ex: Exception) {
                     // todo: special message for unique constraint violation
@@ -107,11 +102,7 @@ object EmployeeUI {
         return Form(listOf(caseId, employeeId), "[Form  - Remove case from employee]") {
             transaction {
                 try {
-                    val employee = findOne<Employee>(it[employeeId].toInt())
-                            ?: throw RuntimeException("Employee not found!")
-                    val case = findOne<Case>(it[caseId].toInt()) ?: throw RuntimeException("Case not found!")
-
-                    employee.removeCase(this, case)
+                    Employee.removeCase(it[employeeId].toInt(), it[caseId].toInt())
                     Scene.replace(Success("Case removed!"))
                 } catch (ex: Exception) {
                     Scene.replace(Error("Cannot remove specified employee from specified case. Detail: ${ex.message}"))

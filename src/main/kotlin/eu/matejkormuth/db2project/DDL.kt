@@ -51,6 +51,8 @@ object DDL {
         }
 
         fun createIndices(table: Table<out Entity>): Iterable<String> {
+            // todo: postgres does not automatically create FK indices, so we create them manually
+
             return table.columns.values.filter { it.isUnique }.map {
                 "ALTER TABLE ${table.name} ADD CONSTRAINT uniq_${it.name} UNIQUE (${it.name})"
             }

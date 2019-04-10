@@ -40,7 +40,7 @@ object ApplicationUI {
 
         return Menu(listOf(
                 MenuItem("Employees") { Scene.push(employeesMenu) },
-                MenuItem("\uD83D\uDED1 Departments") { Scene.push(departmentsMenu) },
+                MenuItem("Departments") { Scene.push(departmentsMenu) },
                 MenuItem("\uD83D\uDED1 Cases") { Scene.push(casesMenu) },
                 MenuItem("\uD83D\uDED1 Crime scenes") { Scene.push(crimeScenesMenu) },
                 MenuItem("Punishments") { Scene.push(punishmentsMenu) },

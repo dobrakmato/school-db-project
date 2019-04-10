@@ -70,8 +70,8 @@ object DepartmentUI {
     }
 
     fun deleteDepartment(): Drawable {
-        val id = FormItem.requiredId("Employee ID")
-        return Form(listOf(id), "[ Form - Delete existing employee ]") {
+        val id = FormItem.requiredId("Department ID")
+        return Form(listOf(id), "[ Form - Delete existing department ]") {
             try {
                 transaction {
                     val department = findOne<Department>(it[id].toInt(10), forUpdate = true)
