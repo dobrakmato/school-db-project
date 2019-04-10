@@ -1,14 +1,9 @@
 package eu.matejkormuth.db2project.screens
 
-import eu.matejkormuth.db2project.findAllReferenced
-import eu.matejkormuth.db2project.findOne
-import eu.matejkormuth.db2project.getOrNull
-import eu.matejkormuth.db2project.models.AssignedEmployee
-import eu.matejkormuth.db2project.models.Case
-import eu.matejkormuth.db2project.models.CaseType
-import eu.matejkormuth.db2project.models.Connection
-import eu.matejkormuth.db2project.transaction
+import eu.matejkormuth.db2project.*
+import eu.matejkormuth.db2project.models.*
 import eu.matejkormuth.db2project.ui.*
+import java.time.Instant
 
 object CaseUI {
     fun listCase(): Drawable {
@@ -70,17 +65,74 @@ object CaseUI {
     }
 
     fun createCase(): Drawable {
-        return Form(listOf()) {
+        val allowedCaseTypes = CaseType.values().map { it.toString() }
 
+        val description = FormItem.required("Description")
+        val headEmployeeId = FormItem.requiredId("Head Employee ID")
+        val placeId = FormItem.requiredId("Place ID (for crime and misdemeanor leave empty)")
+        val caseType = FormItem.oneOf("Case type (one of ${allowedCaseTypes.joinToString(", ")})", possible = allowedCaseTypes)
+        val categoryId = FormItem.requiredId("Category ID")
+
+        return Form(listOf()) {
+            try {
+                transaction {
+                    val employee = findOne<Employee>(it[headEmployeeId].toInt())
+                            ?: throw RuntimeException("Cannot find specified employee!")
+                    val category = findOne<Category>(it[categoryId].toInt())
+                            ?: throw RuntimeException("Cannot find specified category!")
+
+                    if (!employee.type.canBeCaseHeadEmployee()) throw RuntimeException("Specified employeed cannot be head employee of case!")
+
+                    val type = CaseType.valueOf(it[caseType])
+
+                    val place: CrimeScene?
+                    if (type == CaseType.PROTECTIVE_ACTION) {
+                        place = findOne(it[placeId].toInt())
+                                ?: throw RuntimeException("Cannot find specified place (crime scene)!")
+                    } else {
+                        place = null
+                    }
+
+                    val case = insertOne(Case(
+                            description = it[description],
+                            headEmployee = Lazy(employee.id),
+                            caseCategory = Lazy(category.id),
+                            caseType = type,
+                            protectiveActionPlace = if (type == CaseType.PROTECTIVE_ACTION) Lazy(place?.id
+                                    ?: 0) else null,
+                            createdAt = Instant.now()
+                    ))
+                    Scene.replace(Success("Case created (${case.id})"))
+                }
+            } catch (ex: Exception) {
+                Scene.replace(Error("Cannot create case: $ex"))
+            }
         }
     }
 
     fun updateCase(): Drawable {
-        return Error("Not yet implemented")
+        return Menu(listOf(
+                MenuItem("Assign case to employee") { Scene.push(EmployeeUI.addCaseToEmployee()) },
+                MenuItem("Dissociate case from employee") { Scene.push(EmployeeUI.removeCaseFromEmployee()) },
+                MenuItem("\uD83D\uDED1 Add connection/person to case") { Scene.push(addConnectionToCase()) },
+                MenuItem("\uD83D\uDED1 Confirm connection") { Scene.push(confirmConnection()) }
+        ), "[ Menu - Update case ]")
+    }
+
+    private fun confirmConnection(): Drawable {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    private fun addConnectionToCase(): Drawable {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     fun closeCase(): Drawable {
-        return Error("Not yet implemented")
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    fun autoAssignEmployeesToCase(): Drawable {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
 }

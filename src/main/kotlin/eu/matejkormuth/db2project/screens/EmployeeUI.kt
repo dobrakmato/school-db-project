@@ -80,7 +80,7 @@ object EmployeeUI {
         ), "[ Menu - Update cases of employee ]")
     }
 
-    private fun addCaseToEmployee(): Drawable {
+    fun addCaseToEmployee(): Drawable {
         val caseId = FormItem.requiredId("Case ID")
         val employeeId = FormItem.requiredId("Employee ID")
         return Form(listOf(caseId, employeeId), "[Form  - Add case to employee]") {
@@ -96,7 +96,7 @@ object EmployeeUI {
         }
     }
 
-    private fun removeCaseFromEmployee(): Drawable {
+    fun removeCaseFromEmployee(): Drawable {
         val caseId = FormItem.requiredId("Case ID")
         val employeeId = FormItem.requiredId("Employee ID")
         return Form(listOf(caseId, employeeId), "[Form  - Remove case from employee]") {
@@ -121,5 +121,13 @@ object EmployeeUI {
                 Scene.replace(Error("Cannot delete employee it either does not exists or has stuff tied to him."))
             }
         }
+    }
+
+    fun promotion(): Drawable {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    fun transferEmployees(): Drawable {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }

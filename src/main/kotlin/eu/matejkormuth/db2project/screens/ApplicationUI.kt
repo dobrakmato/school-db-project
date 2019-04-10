@@ -23,7 +23,8 @@ object ApplicationUI {
         val casesMenu = Menu(listOf(
                 MenuItem("List case information, people and crimes scenes") { Scene.push(CaseUI.listCase()) },
                 MenuItem("Create new case") { Scene.push(CaseUI.createCase()) },
-                MenuItem("Close case") { Scene.push(CaseUI.closeCase()) },
+                MenuItem("\uD83D\uDED1 Close case (domain operation)") { Scene.push(CaseUI.closeCase()) },
+                MenuItem("\uD83D\uDED1 Auto-assign employees to case (domain operation)") { Scene.push(CaseUI.autoAssignEmployeesToCase()) },
                 MenuItem("Update existing case") { Scene.push(CaseUI.updateCase()) }
         ), "[ Cases menu ]")
 
@@ -35,17 +36,19 @@ object ApplicationUI {
 
         val punishmentsMenu = Menu(listOf(
                 MenuItem("List punishments") { Scene.push(PunishmentUI.listPunishments()) },
-                MenuItem("Create new punishment") { Scene.push(PunishmentUI.createPunishment()) }
+                MenuItem("Create new punishment (domain operation)") { Scene.push(PunishmentUI.createPunishment()) }
         ), "[ Punishments menu ]")
 
         return Menu(listOf(
                 MenuItem("Employees") { Scene.push(employeesMenu) },
                 MenuItem("Departments") { Scene.push(departmentsMenu) },
-                MenuItem("\uD83D\uDED1 Cases") { Scene.push(casesMenu) },
+                MenuItem("Cases") { Scene.push(casesMenu) },
                 MenuItem("\uD83D\uDED1 Crime scenes") { Scene.push(crimeScenesMenu) },
                 MenuItem("Punishments") { Scene.push(punishmentsMenu) },
-                MenuItem("\uD83D\uDED1 ☠️ Dangerous city districts") { Scene.push(dangerousCityDistricts()) },
-                MenuItem("\uD83D\uDCC8 Cop of month") { Scene.push(copOfMonth()) }
+                MenuItem("\uD83D\uDED1 Promotion (domain operation)") { Scene.push(EmployeeUI.promotion()) },
+                MenuItem("\uD83D\uDED1 Transfer employees (domain operation)") { Scene.push(EmployeeUI.transferEmployees()) },
+                MenuItem("\uD83D\uDED1 ☠️ Dangerous city districts (statistic)") { Scene.push(dangerousCityDistricts()) },
+                MenuItem("\uD83D\uDCC8 Cop of month (statistic)") { Scene.push(copOfMonth()) }
         ), header = "[ ⭐⭐ POLICE DEPARTMENT - MENU ⭐⭐ ]", allowBack = false)
     }
 

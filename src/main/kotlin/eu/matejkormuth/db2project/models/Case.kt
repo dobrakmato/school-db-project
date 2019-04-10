@@ -9,7 +9,7 @@ data class Case(
         val headEmployee: Lazy<Employee>,
         val caseType: CaseType,
         val caseCategory: Lazy<Category>,
-        @Maybe val closedBy: Lazy<Employee>?,
+        @Maybe val closedBy: Lazy<Employee>? = null,
         @Maybe val protectiveActionPlace: Lazy<CrimeScene>? = null /* for protective action */,
         val createdAt: Instant = Instant.now()
 ) : Entity()
