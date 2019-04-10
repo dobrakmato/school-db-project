@@ -70,6 +70,15 @@ inline fun <reified T : Entity> ConnectionAware.delete(id: Id): Boolean {
             .execute()
 }
 
+inline fun <reified T : Entity> ConnectionAware.findReferenced(id: Id, columnName: String, eagerLoad: Boolean = false): T? {
+    val table = Database.tableFor(T::class.java)
+    val qb = table.queryBuilder(this.connection)
+    if (eagerLoad) qb.selectEager() else qb.select()
+    qb.eq(columnName, id)
+    return qb.fetchOne()
+}
+
+
 inline fun <reified T : Entity> ConnectionAware.find(eagerLoad: Boolean = false): QueryBuilder<T> {
     val table = Database.tableFor(T::class.java)
     val qb = table.queryBuilder(this.connection)
