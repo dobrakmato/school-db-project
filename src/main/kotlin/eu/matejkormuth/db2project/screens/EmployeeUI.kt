@@ -1,5 +1,6 @@
-package eu.matejkormuth.db2project
+package eu.matejkormuth.db2project.screens
 
+import eu.matejkormuth.db2project.*
 import eu.matejkormuth.db2project.models.Case
 import eu.matejkormuth.db2project.models.Employee
 import eu.matejkormuth.db2project.models.EmployeeType
@@ -93,7 +94,7 @@ object EmployeeUI {
                     employee.assignCase(this, case)
                     Scene.replace(Success("Case assigned!"))
                 } catch (ex: Exception) {
-                    rollback()
+                    // todo: special message for unique constraint violation
                     Scene.replace(Error("Cannot add specified employee to specified case. Detail: ${ex.message}"))
                 }
             }
@@ -113,7 +114,6 @@ object EmployeeUI {
                     employee.removeCase(this, case)
                     Scene.replace(Success("Case removed!"))
                 } catch (ex: Exception) {
-                    rollback()
                     Scene.replace(Error("Cannot remove specified employee from specified case. Detail: ${ex.message}"))
                 }
             }

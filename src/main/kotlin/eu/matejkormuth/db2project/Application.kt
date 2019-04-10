@@ -1,5 +1,6 @@
 package eu.matejkormuth.db2project
 
+import eu.matejkormuth.db2project.screens.ApplicationUI
 import eu.matejkormuth.db2project.ui.Scene
 import kotlin.system.measureTimeMillis
 

@@ -1,4 +1,4 @@
-package eu.matejkormuth.db2project
+package eu.matejkormuth.db2project.screens
 
 import eu.matejkormuth.db2project.ui.Drawable
 import eu.matejkormuth.db2project.ui.Error
