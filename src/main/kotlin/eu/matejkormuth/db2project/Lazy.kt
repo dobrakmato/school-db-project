@@ -3,7 +3,8 @@ package eu.matejkormuth.db2project
 import java.sql.Connection
 
 data class Lazy<T : Entity>(
-        val id: Int
+        val id: Int,
+        val isEmpty: Boolean = false
 ) {
     var value: T? = null
     override fun toString(): String {
@@ -11,6 +12,12 @@ data class Lazy<T : Entity>(
             return "Lazy(id=$id)"
         }
         return "Lazy($value)"
+    }
+
+    companion object {
+        fun <T : Entity> empty(): Lazy<T> {
+            return Lazy(-1, true)
+        }
     }
 }
 

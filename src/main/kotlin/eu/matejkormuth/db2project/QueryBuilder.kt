@@ -22,6 +22,8 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
     private var insert = false
     private var eager = false
     private val parameters = mutableListOf<Param>()
+    private val aliasIterator = ('a'..'z').iterator()
+    private val aliases = mutableMapOf<TableField, String>()
 
     fun select(columns: Iterable<String>? = null): QueryBuilder<T> = fluent {
         sql.append("SELECT ")
@@ -43,13 +45,17 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
 
         val pairs = mutableListOf<Pair<String, String>>()
 
-        // aliases from this table
+        // aliasIterator from this table
         pairs.addAll(table.columns.values.map { "${table.name}.${it.name}" to "${table.name}_${it.name}" })
 
-        // aliases from all foreign tables
+        /* generate aliasIterator for referenced tables */
+        table.columns.values.filter { it.isReference }.forEach { aliases[it] = aliasIterator.next().toString() }
+
+        // aliasIterator from all foreign tables
         table.columns.values.filter { it.isReference }.forEach { foreignKey ->
             val foreignTable = foreignKey.table
-            pairs.addAll(foreignTable.columns.values.map { "${foreignTable.name}.${it.name}" to "${foreignTable.name}_${it.name}" })
+            val foreignTableAlias = aliases[foreignKey]
+            pairs.addAll(foreignTable.columns.values.map { "$foreignTableAlias.${it.name}" to "${foreignTableAlias}_${it.name}" })
         }
 
         sql.append(pairs.joinToString(", ") { "${it.first} as ${it.second}" })
@@ -58,9 +64,9 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
 
         // find all join tables
         table.columns.values.filter { it.isReference }.forEach {
-            sql.append(" JOIN ${it.table.name} ON ${table.name}.${it.name} = ${it.table.name}.id")
+            val refTableName = it.table.name
+            sql.append(" LEFT OUTER JOIN $refTableName ${aliases[it]} ON ${table.name}.${it.name} = ${aliases[it]}.id")
         }
-
     }
 
     fun insertOne(row: T): Lazy<T> {
@@ -186,7 +192,7 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
         /* Check for column name and for "table_name.column_name" */
         if (col !in table.columns) {
             if (col.split('.').last() !in table.columns) {
-                throw IllegalArgumentException("Column $column does not exsits on ${table.name}")
+                throw IllegalArgumentException("Column $column does not exists on ${table.name}")
             }
             col = col.split(".").last()
         }
@@ -215,7 +221,7 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
         createBoundStatement().use { stmt ->
             stmt.executeQuery().use {
                 while (it.next()) {
-                    list.add(table.instantiate(it, eager, eager))
+                    list.add(table.instantiate(it, eager, if(aliases.isEmpty()) null else aliases))
                 }
             }
 

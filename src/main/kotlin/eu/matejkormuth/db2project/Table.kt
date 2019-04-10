@@ -6,14 +6,18 @@ import java.sql.ResultSet
 import java.sql.Timestamp
 import java.time.Instant
 import java.util.*
+import kotlin.RuntimeException
 
 class Table<T : Entity>(klass: Class<T>) {
     val name: String = DDL.camelToSnakeCase(DDL.pluralize(klass.simpleName))
 
-    private val fields = klass.declaredFields.map { it.type }.toTypedArray()
-    private val satisfyingCtr = klass.getConstructor(*fields)
+    /* remove kotlin Companion object from fields */
+    private val fields = klass.declaredFields.filter { "Companion" !in it.name }
 
-    val columns: Map<String, TableField> = klass.declaredFields
+    private val fieldTypes = fields.map { it.type }.toTypedArray()
+    private val satisfyingCtr = klass.getConstructor(*fieldTypes)
+
+    val columns: Map<String, TableField> = fields
             .mapIndexed { idx, it -> TableField(it, satisfyingCtr.parameters[idx]) }
             .map { it.name to it }
             .toMap()
@@ -36,10 +40,11 @@ class Table<T : Entity>(klass: Class<T>) {
             }
         }
 
-        fun new(resultSet: ResultSet, recursive: Boolean, tablePrefix: String): T {
+        fun new(resultSet: ResultSet, eagerLoadLazys: Boolean, aliases: MutableMap<TableField, String>?, thisAlias: String): T {
             val args = Array<Any?>(paramsCount) { null }
             ctrParams.forEach {
-                args[it.argIdx] = resultSet.getObject(tablePrefix + it.columnName)
+
+                args[it.argIdx] = resultSet.getObject(thisAlias + '_' + it.columnName)
 
                 /* convert enums represented by ints to enums */
                 if (it.enumClass != null) {
@@ -54,16 +59,21 @@ class Table<T : Entity>(klass: Class<T>) {
 
                 /* convert lazys represented by int to lazys */
                 if (it.tableField.isReference) {
-                    val lazy = Lazy<Entity>(it.argIdx)
+
+                    if (aliases == null) throw RuntimeException("Must use aliases for referenced entities.")
+
+                    val lazy = if (args[it.argIdx] == null) Lazy.empty() else Lazy<Entity>(it.argIdx)
                     args[it.argIdx] = lazy
 
-                    if (recursive) {
+                    if (eagerLoadLazys && !lazy.isEmpty) {
                         val foreignTable = it.tableField.table
                         lazy.value = foreignTable.instantiate(
                                 resultSet,
-                                recursive = false,
-                                tablePrefix = true
-                        ) // todo: recursive
+                                eagerLoadLazys = false,
+                                aliases = aliases,
+                                thisAlias = (aliases[it.tableField]
+                                        ?: throw RuntimeException("No alias for ${it.tableField}"))
+                        ) // todo: recursive multi-level
                     }
                 }
             }
@@ -90,9 +100,9 @@ class Table<T : Entity>(klass: Class<T>) {
     }
 
 
-    fun instantiate(resultSet: ResultSet, recursive: Boolean, tablePrefix: Boolean = false): T {
+    fun instantiate(resultSet: ResultSet, eagerLoadLazys: Boolean, aliases: MutableMap<TableField, String>? = null, thisAlias: String? = null): T {
         try {
-            return instantier.new(resultSet, recursive, if (tablePrefix) "${name}_" else "")
+            return instantier.new(resultSet, eagerLoadLazys, aliases, if (aliases == null) "" else thisAlias ?: name)
         } catch (ex: Exception) {
             log.error("Cannot instantiate '$name' entity!")
             throw ex

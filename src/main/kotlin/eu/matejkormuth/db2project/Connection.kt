@@ -78,6 +78,13 @@ inline fun <reified T : Entity> ConnectionAware.findReferenced(id: Id, columnNam
     return qb.fetchOne()
 }
 
+inline fun <reified T : Entity> ConnectionAware.findAllReferenced(id: Id, columnName: String, eagerLoad: Boolean = false): Iterable<T> {
+    val table = Database.tableFor(T::class.java)
+    val qb = table.queryBuilder(this.connection)
+    if (eagerLoad) qb.selectEager() else qb.select()
+    qb.eq(columnName, id)
+    return qb.fetchMultiple()
+}
 
 inline fun <reified T : Entity> ConnectionAware.find(eagerLoad: Boolean = false): QueryBuilder<T> {
     val table = Database.tableFor(T::class.java)
