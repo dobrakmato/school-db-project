@@ -21,6 +21,7 @@ fun createTables() {
                 Punishment::class.java
         ).forEach { sql -> run(sql) }
         run("ALTER TABLE assigned_employees ADD CONSTRAINT uniq_case_empl UNIQUE (case_id, employee_id)")
+        run("create index cases_created_at_closed_by_id_index on cases (created_at, closed_by_id);")
     }
 }
 
@@ -41,11 +42,11 @@ fun fillTables() {
     val faker = Faker()
 
     val maxCityDistricts = 30
-    val maxEmployees = 500
-    val maxDepartments = 30
-    val maxCategories = 30
-    val maxCrimeScenes = 800
-    val maxCases = 4000
+    val maxEmployees = 1000
+    val maxDepartments = 50
+    val maxCategories = 50
+    val maxCrimeScenes = 5000
+    val maxCases = 15000
 
     transaction {
 

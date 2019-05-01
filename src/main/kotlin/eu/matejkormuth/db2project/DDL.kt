@@ -51,11 +51,19 @@ object DDL {
         }
 
         fun createIndices(table: Table<out Entity>): Iterable<String> {
-            // todo: postgres does not automatically create FK indices, so we create them manually
+            val foreignIndices = table.columns.values.filter { it.isReference }.map {
+                "CREATE INDEX ON ${table.name}(${it.name})"
+            }
 
-            return table.columns.values.filter { it.isUnique }.map {
+            val requestedIndices = table.columns.values.filter { it.hasIndex }.map {
+                "CREATE INDEX ON ${table.name}(${it.name})"
+            }
+
+            val unique = table.columns.values.filter { it.isUnique }.map {
                 "ALTER TABLE ${table.name} ADD CONSTRAINT uniq_${it.name} UNIQUE (${it.name})"
             }
+
+            return unique + foreignIndices + requestedIndices
         }
 
         fun createTableQueries(table: Table<out Entity>): Sql {
@@ -72,9 +80,9 @@ object DDL {
 
         val create = tables.map { Database.tableFor(it) }.map { createTableQueries(it) }.toList()
         val fk = tables.map { Database.tableFor(it) }.flatMap { createForeignKeys(it) }.toList()
-        val uniq = tables.map { Database.tableFor(it) }.flatMap { createIndices(it) }.toList()
+        val indices = tables.map { Database.tableFor(it) }.flatMap { createIndices(it) }.toList()
 
-        return create + fk + uniq
+        return create + fk + indices
     }
 
 }

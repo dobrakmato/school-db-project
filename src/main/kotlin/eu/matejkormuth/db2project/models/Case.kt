@@ -11,5 +11,5 @@ data class Case(
         val caseCategory: Lazy<Category>,
         @Maybe val closedBy: Lazy<Employee>? = null,
         @Maybe val protectiveActionPlace: Lazy<CrimeScene>? = null /* for protective action */,
-        val createdAt: Instant = Instant.now()
+        @Index val createdAt: Instant = Instant.now()
 ) : Entity()

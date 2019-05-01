@@ -16,6 +16,7 @@ data class TableField(private val it: Field, private val parameter: Parameter) {
     val isEnum = it.type.isEnum
     val isNullable = parameter.isAnnotationPresent(Maybe::class.java)
     val isUnique = parameter.isAnnotationPresent(Unique::class.java)
+    val hasIndex = parameter.isAnnotationPresent(Index::class.java)
     val genericType by lazy { it.genericType }
 
     @Suppress("UNCHECKED_CAST")

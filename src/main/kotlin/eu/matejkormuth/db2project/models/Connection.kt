@@ -10,5 +10,5 @@ data class Connection(
         val crimeScene: Lazy<CrimeScene>,
         val person: Lazy<Person>,
         @Maybe val confirmedBy: Lazy<Employee>?,
-        @Maybe val confirmedAt: Instant?
+        @Index @Maybe val confirmedAt: Instant?
 ) : Entity()
