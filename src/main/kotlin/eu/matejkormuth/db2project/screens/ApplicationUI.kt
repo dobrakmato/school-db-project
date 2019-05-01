@@ -1,6 +1,7 @@
 package eu.matejkormuth.db2project.screens
 
 import eu.matejkormuth.db2project.models.CopOfMonth
+import eu.matejkormuth.db2project.models.DangerousCityDistricts
 import eu.matejkormuth.db2project.ui.*
 
 object ApplicationUI {
@@ -57,7 +58,19 @@ object ApplicationUI {
     /* Statistics */
 
     private fun dangerousCityDistricts(): Drawable {
-        return Text("dangerousCityDistricts()")
+        val rows = DangerousCityDistricts.getAllRows()
+        return DataTable(rows, listOf("Year", "Quarter", "Month", "Position", "District", "Cases", "Misdemeanors", "Crimes")) {
+            listOf(
+                    it.year,
+                    it.quarter,
+                    it.month,
+                    it.position.toString(),
+                    it.district,
+                    it.casesCount.toString(),
+                    it.type0Count.toString(),
+                    it.type1Count.toString()
+            )
+        }
     }
 
     private fun copOfMonth(): Drawable {
