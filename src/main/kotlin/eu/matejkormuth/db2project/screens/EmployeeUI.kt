@@ -85,16 +85,14 @@ object EmployeeUI {
         val caseId = FormItem.requiredId("Case ID")
         val employeeId = FormItem.requiredId("Employee ID")
         return Form(listOf(caseId, employeeId), "[Form  - Add case to employee]") {
-            transaction {
-                try {
-                    Employee.assignCase(it[employeeId].toInt(), it[caseId].toInt())
-                    Scene.replace(Success("Case assigned!"))
-                } catch (ex: Exception) {
-                    if (ex is SQLException) {
-                        Scene.replace(Error("Cannot add specified employee to specified case. Detail: Already assigned."))
-                    } else {
-                        Scene.replace(Error("Cannot add specified employee to specified case. Detail: ${ex.message}"))
-                    }
+            try {
+                Employee.assignCase(it[employeeId].toInt(), it[caseId].toInt())
+                Scene.replace(Success("Case assigned!"))
+            } catch (ex: Exception) {
+                if (ex is SQLException) {
+                    Scene.replace(Error("Cannot add specified employee to specified case. Detail: Already assigned."))
+                } else {
+                    Scene.replace(Error("Cannot add specified employee to specified case. Detail: ${ex.message}"))
                 }
             }
         }
@@ -104,13 +102,11 @@ object EmployeeUI {
         val caseId = FormItem.requiredId("Case ID")
         val employeeId = FormItem.requiredId("Employee ID")
         return Form(listOf(caseId, employeeId), "[Form  - Remove case from employee]") {
-            transaction {
-                try {
-                    Employee.removeCase(it[employeeId].toInt(), it[caseId].toInt())
-                    Scene.replace(Success("Case removed!"))
-                } catch (ex: Exception) {
-                    Scene.replace(Error("Cannot remove specified employee from specified case. Detail: ${ex.message}"))
-                }
+            try {
+                Employee.removeCase(it[employeeId].toInt(), it[caseId].toInt())
+                Scene.replace(Success("Case removed!"))
+            } catch (ex: Exception) {
+                Scene.replace(Error("Cannot remove specified employee from specified case. Detail: ${ex.message}"))
             }
         }
     }

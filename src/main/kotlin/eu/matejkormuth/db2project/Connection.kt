@@ -13,8 +13,11 @@ inline fun <T> transaction(isolation: Int = Connection.TRANSACTION_SERIALIZABLE,
     val connectionAware = ConnectionAware(connection)
     connection.autoCommit = false
     connection.transactionIsolation = isolation
+
+
     try {
         val result = connectionAware.block()
+        connectionAware.log.debug("Implicitly COMMIT-ing the current transaction.")
         connection.commit()
         return result
     } catch (e: Exception) {
@@ -55,6 +58,8 @@ inline fun <reified T : Entity> ConnectionAware.delete(id: Id): Boolean {
             .eq("id", id)
             .execute()
 }
+
+inline fun ConnectionAware.commit() = this.connection.commit()
 
 inline fun <reified T : Entity> ConnectionAware.findReferenced(id: Id, columnName: String, eagerLoad: Boolean = false): T? {
     val table = Database.tableFor(T::class.java)
@@ -122,6 +127,7 @@ fun ConnectionAware.run(sql: Sql): Boolean = this.connection.createStatement().u
 }
 
 fun <T> ConnectionAware.runQuery(sql: Sql, receiver: (it: ResultSet) -> T): T = this.connection.createStatement().use {
+    log.debug("SQL: $sql")
     return receiver(it.executeQuery(sql))
 }
 

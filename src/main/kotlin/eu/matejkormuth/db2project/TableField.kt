@@ -44,7 +44,11 @@ data class TableField(private val it: Field, private val parameter: Parameter) {
             val toString = { it.get(row)?.toString() }
             when (it.type) {
                 String::class.java, Int::class.java, Integer::class.java -> toString()
-                Lazy::class.java -> (it.get(row) as Lazy<*>?)?.id?.toString()
+                Lazy::class.java -> {
+                    val lazy = (it.get(row) as Lazy<*>?)
+                    lazy?.let { if (lazy.isEmpty) return null }
+                    lazy?.id?.toString()
+                }
                 else -> throw UnsupportedOperationException("Cannot make string of ${it.type}!")
             }
         }

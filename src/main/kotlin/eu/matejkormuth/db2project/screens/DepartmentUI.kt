@@ -21,7 +21,7 @@ object DepartmentUI {
         return Form(listOf(name, headEmployeeId), "[ Form - Create new department ]") {
             try {
                 transaction {
-                    val employee = findOne<Department>(it[headEmployeeId].toInt())
+                    val employee = findOne<Employee>(it[headEmployeeId].toInt())
                             ?: throw RuntimeException("Specified employee does not exists!")
                     val department = insertOne(Department(
                             name = it[name],

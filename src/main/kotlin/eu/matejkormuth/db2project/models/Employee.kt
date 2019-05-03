@@ -25,10 +25,14 @@ data class Employee(
                     throw RuntimeException("INVESTIGATOR cannot be assigned to cases other than CRIME!")
 
                 /* perform the write */
-                return insertOne(AssignedEmployee(
-                        employee = Lazy(employee.id),
-                        case = Lazy(case.id)
-                ))
+                try {
+                    return insertOne(AssignedEmployee(
+                            employee = Lazy(employee.id),
+                            case = Lazy(case.id)
+                    ))
+                } finally {
+                    commit()
+                }
             }
         }
 
@@ -47,6 +51,7 @@ data class Employee(
                 if (results.count() == 0) throw RuntimeException("Specified assigment does not exists!")
 
                 delete<AssignedEmployee>(results.first().id)
+                commit()
             }
         }
 
@@ -59,7 +64,7 @@ data class Employee(
                                 getString("name"),
                                 EmployeeType.values()[getInt("type")],
                                 Lazy(getInt("department_id")),
-                                getInt("tank")
+                                getInt("rank")
                         )
                     }
                 }

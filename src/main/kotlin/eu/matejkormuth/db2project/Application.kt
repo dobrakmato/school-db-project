@@ -9,8 +9,8 @@ fun main() {
     Database.initialize()
 
     /* Create database schema and data. */
-    println("Tables created in " + measureTimeMillis { createTables() } + " ms")
-    println("Tables seeded in " + measureTimeMillis { fillTables() } + " ms")
+    // println("Tables created in " + measureTimeMillis { createTables() } + " ms")
+    // println("Tables seeded in " + measureTimeMillis { fillTables() } + " ms")
 
     /* Bootstrap the UI */
     Scene.push(ApplicationUI.mainMenu())

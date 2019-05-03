@@ -25,7 +25,11 @@ data class Person(
 
             val caseCategory = retrieve(case.caseCategory)!!
 
-            return insertOne(Punishment.create(person, case, caseCategory))
+            try {
+                return insertOne(Punishment.create(person, case, caseCategory))
+            } finally {
+                commit()
+            }
 
         }
 

@@ -44,7 +44,7 @@ class Table<T : Entity>(klass: Class<T>) {
             val args = Array<Any?>(paramsCount) { null }
             ctrParams.forEach {
 
-                args[it.argIdx] = resultSet.getObject(thisAlias + '_' + it.columnName)
+                args[it.argIdx] = resultSet.getObject((if (thisAlias != "") thisAlias + '_' else "") + it.columnName)
 
                 /* convert enums represented by ints to enums */
                 if (it.enumClass != null) {
@@ -60,12 +60,11 @@ class Table<T : Entity>(klass: Class<T>) {
                 /* convert lazys represented by int to lazys */
                 if (it.tableField.isReference) {
 
-                    if (aliases == null) throw RuntimeException("Must use aliases for referenced entities.")
-
-                    val lazy = if (args[it.argIdx] == null) Lazy.empty() else Lazy<Entity>(it.argIdx)
+                    val lazy = if (args[it.argIdx] == null) Lazy.empty() else Lazy<Entity>(args[it.argIdx] as Int)
                     args[it.argIdx] = lazy
 
                     if (eagerLoadLazys && !lazy.isEmpty) {
+                        if (aliases == null) throw RuntimeException("Must use aliases for referenced entities.")
                         val foreignTable = it.tableField.table
                         lazy.value = foreignTable.instantiate(
                                 resultSet,

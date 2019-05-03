@@ -1,10 +1,10 @@
 package eu.matejkormuth.db2project
 
+import eu.matejkormuth.db2project.models.Employee
 import java.sql.Connection
 
 data class Lazy<T : Entity>(
-        val id: Int,
-        val isEmpty: Boolean = false
+        val id: Int
 ) {
     var value: T? = null
     override fun toString(): String {
@@ -14,9 +14,19 @@ data class Lazy<T : Entity>(
         return "Lazy($value)"
     }
 
+    val isEmpty: Boolean = this.id == -1
+
     companion object {
         fun <T : Entity> empty(): Lazy<T> {
-            return Lazy(-1, true)
+            return Lazy(-1)
+        }
+
+        fun <T : Entity> notEmpty(lazy: Lazy<T>?): Boolean {
+            return lazy != null && !lazy.isEmpty
+        }
+
+        fun <T : Entity> empty(lazy: Lazy<T>?): Boolean {
+            return lazy == null || lazy.isEmpty
         }
     }
 }

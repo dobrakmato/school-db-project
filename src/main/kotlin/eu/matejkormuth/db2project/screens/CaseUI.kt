@@ -28,7 +28,7 @@ object CaseUI {
 
         val description = FormItem.required("Description")
         val headEmployeeId = FormItem.requiredId("Head Employee ID")
-        val placeId = FormItem.requiredId("Place ID (for crime and misdemeanor leave empty)")
+        val placeId = FormItem("Place ID (for crime and misdemeanor leave empty)")
         val caseType = FormItem.oneOf("Case type (one of ${allowedCaseTypes.joinToString(", ")})", possible = allowedCaseTypes)
         val categoryId = FormItem.requiredId("Category ID")
 
@@ -40,7 +40,7 @@ object CaseUI {
                     val category = findOne<Category>(it[categoryId].toInt())
                             ?: throw RuntimeException("Cannot find specified category!")
 
-                    if (!employee.type.canBeCaseHeadEmployee()) throw RuntimeException("Specified employeed cannot be head employee of case!")
+                    if (!employee.type.canBeCaseHeadEmployee()) throw RuntimeException("Specified employee cannot be head employee of case!")
 
                     val type = CaseType.valueOf(it[caseType])
 
@@ -64,7 +64,7 @@ object CaseUI {
                     Scene.replace(Success("Case created (${case.id})"))
                 }
             } catch (ex: Exception) {
-                Scene.replace(Error("Cannot create case: $ex"))
+                Scene.replace(Error("Cannot create case: ${ex.message}"))
             }
         }
     }
@@ -87,20 +87,20 @@ object CaseUI {
                 Scene.replace(Success("Connection confirmed"))
 
             } catch (ex: Exception) {
-                Scene.replace(Error("Cannot confirm connection: $ex"))
+                Scene.replace(Error("Cannot confirm connection: ${ex.message}"))
             }
         }
     }
 
     private fun addConnectionToCase(): Drawable {
-        val allowedConnectionTypes = CaseType.values().map { it.toString() }
+        val allowedConnectionTypes = PersonType.values().map { it.toString() }
 
         val caseId = FormItem.requiredId("Case ID")
         val crimeSceneId = FormItem.requiredId("Crime scene ID")
-        val connectionType = FormItem.oneOf("Case type (one of ${allowedConnectionTypes.joinToString(", ")})", possible = allowedConnectionTypes)
+        val connectionType = FormItem.oneOf("Type (one of ${allowedConnectionTypes.joinToString(", ")})", possible = allowedConnectionTypes)
 
-        val personName = FormItem.required("Connection type")
-        return Form(listOf(caseId, crimeSceneId, connectionType, personName), "[ Form - Confirm connection ]") {
+        val personName = FormItem.required("Person name")
+        return Form(listOf(caseId, crimeSceneId, connectionType, personName), "[ Form - Add connection ]") {
             try {
                 transaction {
                     val case = findOne<Case>(it[caseId].toInt()) ?: throw RuntimeException("Case not found!")
@@ -137,22 +137,22 @@ object CaseUI {
             try {
                 Case.close(it[caseId].toInt(), it[closerId].toInt())
                 Scene.replace(Success("Case closed"))
-
             } catch (ex: Exception) {
-                Scene.replace(Error("Cannot close case: $ex"))
+                Scene.replace(Error("Cannot close case: ${ex.message}"))
             }
         }
     }
 
     fun autoAssignEmployeesToCase(): Drawable {
         val caseId = FormItem.requiredId("Case ID")
-        return Form(listOf(caseId), "[ Form - Auto assign employees ]") {
+        val count = FormItem.requiredId("How many employees")
+        return Form(listOf(caseId, count), "[ Form - Auto assign employees ]") {
             try {
-                val employees = Case.autoAssign(it[caseId].toInt())
+                val employees = Case.autoAssign(it[caseId].toInt(), it[count].toInt())
                 Scene.replace(Success("Employees (${employees.joinToString(", ") { e -> e.name }}) auto assigned!"))
 
             } catch (ex: Exception) {
-                Scene.replace(Error("Cannot close case: $ex"))
+                Scene.replace(Error("Cannot close case: ${ex.message}"))
             }
         }
     }

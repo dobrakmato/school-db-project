@@ -18,7 +18,7 @@ object CrimeSceneUI {
 
     fun createCrimeScene(): Drawable {
         val name = FormItem.required("Name of crime scene")
-        val cityDistrictId = FormItem.requiredId("Associated city district")
+        val cityDistrictId = FormItem.requiredId("Associated city district ID")
 
         return Form(listOf(name, cityDistrictId), "[ Form - Create crime scene ]") {
             try {

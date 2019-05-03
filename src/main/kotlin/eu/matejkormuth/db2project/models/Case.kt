@@ -17,39 +17,43 @@ data class Case(
 
         fun close(caseId: Int, closedById: Int) = transaction {
             val case = findOne<Case>(caseId, forUpdate = true) ?: throw RuntimeException("Case not found!")
+            val closedBy = findOne<Employee>(closedById, forUpdate = true)
+                    ?: throw RuntimeException("Employee not found!")
+
+            if (case.closedBy != null && !case.closedBy.isEmpty) throw RuntimeException("Case already closed!")
+
             val caseCategory = retrieve(case.caseCategory)!!
             val connections = findAllReferenced<Connection>(caseId, "case_id").map {
-                retrieve(it.person)
+                it.person.get(this.connection)
                 it
             }
 
-
             /* ensure all are confirmed */
-            val victimsAndSuspectsConfirmed = connections.all {
-                if (it.person.value!!.personType in listOf(PersonType.SUSPECT, PersonType.VICTIM)) {
-                    return@all it.confirmedAt != null
-                }
-                return@all true
-            }
+            val victimsAndSuspectsConfirmed = connections
+                    .filter { it.person.getOrNull()!!.personType == PersonType.SUSPECT || it.person.getOrNull()!!.personType == PersonType.VICTIM }
+                    .all { Lazy.notEmpty(it.confirmedBy) }
 
             if (!victimsAndSuspectsConfirmed) throw RuntimeException("Not all victims and suspects are confirmed!")
 
             /* punish unpunished suspects */
             connections.forEach {
-                if (it.person.value!!.personType == PersonType.SUSPECT && it.confirmedAt == null) {
+                val punishment = findReferenced<Punishment>(it.person.id, "punished_id")
+                if (it.person.value!!.personType == PersonType.SUSPECT && punishment == null) {
                     insertOne(Punishment.create(it.person.value!!, case, caseCategory))
                 }
             }
 
             /* update the case */
             updateOne(case.copy(
-                    closedBy = Lazy(closedById)
+                    closedBy = Lazy(closedBy.id)
             ))
 
         }
 
-        fun autoAssign(caseId: Int): Iterable<Employee> = transaction {
+        fun autoAssign(caseId: Int, count: Int): Iterable<Employee> = transaction {
             val case = findOne<Case>(caseId, forUpdate = true) ?: throw RuntimeException("Case not found!")
+
+            // todo: do not request already assigned employees: add not in to bored_employee.sql
 
             /* find employees with least works to do that are not assigned to this case */
             var employees = Employee.findBoredEmployees(caseId, this).filter {
@@ -59,7 +63,7 @@ data class Case(
             }
 
             /* assign all of them to this case */
-            employees.forEach {
+            employees.take(count).forEach {
                 insertOne(AssignedEmployee(
                         case = Lazy(caseId),
                         employee = Lazy(it.id)
@@ -91,7 +95,7 @@ data class Case(
                     headEmployee = Lazy(headEmployee.id)
             ))
 
-
+            commit()
             return employees
         }
 

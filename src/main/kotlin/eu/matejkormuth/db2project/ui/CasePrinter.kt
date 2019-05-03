@@ -38,12 +38,12 @@ object CasePrinter {
         ctx.text("")
 
         /* assigned employees */
-        DataTable(assignedEmployees, listOf("ID", "Assigned employee name")) {
-            listOf(it.id.toString(), it.employee.getOrNull()!!.name)
+        DataTable(assignedEmployees.sortedBy { it.employee.getOrNull()!!.name }, listOf("ID", "Assigned employee name")) {
+            listOf(it.employee.getOrNull()!!.id.toString(), it.employee.getOrNull()!!.name)
         }.draw(ctx)
 
         /* connections with persons */
-        DataTable(connections, listOf("Connection ID", "Person name", "Person type", "Crime scene", "Confirmed By", "Confirmed at")) {
+        DataTable(connections, listOf("Connection ID", "Person name", "Type", "Crime scene", "Confirmed By", "Confirmed at")) {
             listOf(
                     it.id.toString(),
                     it.person.getOrNull()!!.name,
