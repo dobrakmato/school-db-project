@@ -22,20 +22,14 @@ data class Person(
             if (connection?.confirmedAt == null) throw RuntimeException("Connection is not confirmed!")
 
             val case = connection.case.getOrNull()!!
-            val punishmentType = when (case.caseType) {
-                CaseType.MISDEMEANOR -> PunishmentType.FINE
-                CaseType.CRIME -> PunishmentType.ARREST_WARRANT
-                CaseType.PROTECTIVE_ACTION -> throw RuntimeException("Cannot punish people connected to PROTECTIVE_ACTION!")
-            }
+
             val caseCategory = retrieve(case.caseCategory)!!
 
-            return insertOne(Punishment(
-                    punished = Lazy(person.id),
-                    punishmentType = punishmentType,
-                    fineAmount = if (punishmentType == PunishmentType.FINE) caseCategory.fineAmount else null
-            ))
+            return insertOne(Punishment.create(person, case, caseCategory))
 
         }
+
+
     }
 
 }

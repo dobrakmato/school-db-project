@@ -49,6 +49,22 @@ data class Employee(
                 delete<AssignedEmployee>(results.first().id)
             }
         }
+
+        fun findBoredEmployees(caseId: Int, ctx: ConnectionAware): Iterable<Employee> {
+            return ctx.runQuery(loadQuery("/bored_employees.sql").replace("?", caseId.toString())) { rs ->
+                rs.use {
+                    it.map {
+                        Employee(
+                                getInt("id"),
+                                getString("name"),
+                                EmployeeType.values()[getInt("type")],
+                                Lazy(getInt("department_id")),
+                                getInt("tank")
+                        )
+                    }
+                }
+            }
+        }
     }
 
 

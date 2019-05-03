@@ -3,6 +3,7 @@ package eu.matejkormuth.db2project.screens
 import eu.matejkormuth.db2project.*
 import eu.matejkormuth.db2project.models.*
 import eu.matejkormuth.db2project.ui.*
+import java.sql.SQLException
 import java.time.Instant
 
 object CaseUI {
@@ -72,8 +73,8 @@ object CaseUI {
         return Menu(listOf(
                 MenuItem("Assign case to employee") { Scene.push(EmployeeUI.addCaseToEmployee()) },
                 MenuItem("Dissociate case from employee") { Scene.push(EmployeeUI.removeCaseFromEmployee()) },
-                MenuItem("\uD83D\uDED1 Add connection/person to case") { Scene.push(addConnectionToCase()) },
-                MenuItem("\uD83D\uDED1 Confirm connection") { Scene.push(confirmConnection()) }
+                MenuItem("Add connection/person to case") { Scene.push(addConnectionToCase()) },
+                MenuItem("Confirm connection") { Scene.push(confirmConnection()) }
         ), "[ Menu - Update case ]")
     }
 
@@ -92,15 +93,68 @@ object CaseUI {
     }
 
     private fun addConnectionToCase(): Drawable {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val allowedConnectionTypes = CaseType.values().map { it.toString() }
+
+        val caseId = FormItem.requiredId("Case ID")
+        val crimeSceneId = FormItem.requiredId("Crime scene ID")
+        val connectionType = FormItem.oneOf("Case type (one of ${allowedConnectionTypes.joinToString(", ")})", possible = allowedConnectionTypes)
+
+        val personName = FormItem.required("Connection type")
+        return Form(listOf(caseId, crimeSceneId, connectionType, personName), "[ Form - Confirm connection ]") {
+            try {
+                transaction {
+                    val case = findOne<Case>(it[caseId].toInt()) ?: throw RuntimeException("Case not found!")
+                    val crimeScene = findOne<CrimeScene>(it[crimeSceneId].toInt())
+                            ?: throw RuntimeException("Crime scene not found!")
+                    val person = insertOne(Person(
+                            name = it[personName],
+                            personType = PersonType.valueOf(it[connectionType])
+                    ))
+                    insertOne(Connection(
+                            case = Lazy(case.id),
+                            crimeScene = Lazy(crimeScene.id),
+                            confirmedAt = null,
+                            confirmedBy = null,
+                            person = person
+                    ))
+                }
+
+                Scene.replace(Success("Connection created!"))
+            } catch (ex: Exception) {
+                if (ex is SQLException) {
+                    Scene.replace(Error("Connection creation failed!"))
+                } else {
+                    Scene.replace(Error("Cannot create connection: $ex"))
+                }
+            }
+        }
     }
 
     fun closeCase(): Drawable {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val closerId = FormItem.requiredId("Who is closing the case? (ID)")
+        val caseId = FormItem.requiredId("Case ID")
+        return Form(listOf(closerId, caseId), "[ Form - Close case ]") {
+            try {
+                Case.close(it[caseId].toInt(), it[closerId].toInt())
+                Scene.replace(Success("Case closed"))
+
+            } catch (ex: Exception) {
+                Scene.replace(Error("Cannot close case: $ex"))
+            }
+        }
     }
 
     fun autoAssignEmployeesToCase(): Drawable {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val caseId = FormItem.requiredId("Case ID")
+        return Form(listOf(caseId), "[ Form - Auto assign employees ]") {
+            try {
+                val employees = Case.autoAssign(it[caseId].toInt())
+                Scene.replace(Success("Employees (${employees.joinToString(", ") { e -> e.name }}) auto assigned!"))
+
+            } catch (ex: Exception) {
+                Scene.replace(Error("Cannot close case: $ex"))
+            }
+        }
     }
 
 }
