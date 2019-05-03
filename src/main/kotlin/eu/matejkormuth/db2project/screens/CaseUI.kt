@@ -31,7 +31,7 @@ object CaseUI {
         val caseType = FormItem.oneOf("Case type (one of ${allowedCaseTypes.joinToString(", ")})", possible = allowedCaseTypes)
         val categoryId = FormItem.requiredId("Category ID")
 
-        return Form(listOf()) {
+        return Form(listOf(description, headEmployeeId, placeId, caseType, categoryId), "[ Form - Create case ]") {
             try {
                 transaction {
                     val employee = findOne<Employee>(it[headEmployeeId].toInt())
@@ -78,7 +78,17 @@ object CaseUI {
     }
 
     private fun confirmConnection(): Drawable {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val confirmerId = FormItem.requiredId("Who is confirming the connection? (ID)")
+        val connectionId = FormItem.requiredId("Connection ID")
+        return Form(listOf(confirmerId, connectionId), "[ Form - Confirm connection ]") {
+            try {
+                Connection.confirm(it[connectionId].toInt(), it[confirmerId].toInt())
+                Scene.replace(Success("Connection confirmed"))
+
+            } catch (ex: Exception) {
+                Scene.replace(Error("Cannot confirm connection: $ex"))
+            }
+        }
     }
 
     private fun addConnectionToCase(): Drawable {
