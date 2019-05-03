@@ -80,16 +80,19 @@ inline fun <reified T : Entity> ConnectionAware.find(eagerLoad: Boolean = false)
 }
 
 inline fun <reified T : Entity> ConnectionAware.findOne(id: Id, eagerLoad: Boolean = false, forUpdate: Boolean = false): T? {
-    // todo: select for update
 
     val table = Database.tableFor(T::class.java)
     val qb = table.queryBuilder(this.connection)
 
     if (eagerLoad) qb.selectEager() else qb.select()
 
-    return qb.eq("${table.name}.id", id)
+    qb.eq("${table.name}.id", id)
             .limit(1)
-            .fetchOne()
+
+    if (forUpdate) {
+        qb.forUpdate()
+    }
+    return qb.fetchOne()
 }
 
 

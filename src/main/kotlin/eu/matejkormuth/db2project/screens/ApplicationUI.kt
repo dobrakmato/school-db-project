@@ -48,7 +48,7 @@ object ApplicationUI {
                 MenuItem("Punishments") { Scene.push(punishmentsMenu) },
                 MenuItem("\uD83D\uDED1 Promotion (domain operation)") { Scene.push(EmployeeUI.promotion()) },
                 MenuItem("\uD83D\uDED1 Transfer employees (domain operation)") { Scene.push(EmployeeUI.transferEmployees()) },
-                MenuItem("\uD83D\uDED1 ☠️ Dangerous city districts (statistic)") { Scene.push(dangerousCityDistricts()) },
+                MenuItem("☠️ Dangerous city districts (statistic)") { Scene.push(dangerousCityDistricts()) },
                 MenuItem("\uD83D\uDCC8 Cop of month (statistic)") { Scene.push(copOfMonth()) }
         ), header = "[ ⭐⭐ POLICE DEPARTMENT - MENU ⭐⭐ ]", allowBack = false)
     }
@@ -59,7 +59,7 @@ object ApplicationUI {
 
     private fun dangerousCityDistricts(): Drawable {
         val rows = DangerousCityDistricts.getAllRows()
-        return DataTable(rows, listOf("Year", "Quarter", "Month", "Position", "District", "Cases", "Misdemeanors", "Crimes")) {
+        return DataTable(rows, listOf("Year", "Quarter", "Month", "#", "District", "Cases", "Misdemeanors", "Crimes")) {
             listOf(
                     it.year,
                     it.quarter,

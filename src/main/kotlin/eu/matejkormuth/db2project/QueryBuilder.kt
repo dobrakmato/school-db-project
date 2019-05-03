@@ -209,6 +209,8 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
 
     fun limit(limit: Int): QueryBuilder<T> = fluent { sql.append(" LIMIT $limit") }
 
+    fun forUpdate() = fluent { sql.append(" FOR UPDATE") }
+
     fun fetchOne(): T? = fetchMultiple().firstOrNull()
 
     fun orderBy(column: String) = fluent {
