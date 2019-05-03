@@ -24,15 +24,15 @@ object ApplicationUI {
         val casesMenu = Menu(listOf(
                 MenuItem("List case information, people and crimes scenes") { Scene.push(CaseUI.listCase()) },
                 MenuItem("Create new case") { Scene.push(CaseUI.createCase()) },
-                MenuItem("\uD83D\uDED1 Close case (domain operation)") { Scene.push(CaseUI.closeCase()) },
-                MenuItem("\uD83D\uDED1 Auto-assign employees to case (domain operation)") { Scene.push(CaseUI.autoAssignEmployeesToCase()) },
+                MenuItem("Close case (domain operation)") { Scene.push(CaseUI.closeCase()) },
+                MenuItem("Auto-assign employees to case (domain operation)") { Scene.push(CaseUI.autoAssignEmployeesToCase()) },
                 MenuItem("Update existing case") { Scene.push(CaseUI.updateCase()) }
         ), "[ Cases menu ]")
 
         val crimeScenesMenu = Menu(listOf(
-                MenuItem("List crimes scenes with cases and city districts"),
-                MenuItem("Create new crime scene"),
-                MenuItem("Update existing crime scene")
+                MenuItem("List crimes scenes with cases and city districts") { Scene.push(CrimeSceneUI.listCrimeScenes()) },
+                MenuItem("Create new crime scene") { Scene.push(CrimeSceneUI.createCrimeScene()) },
+                MenuItem("Update existing crime scene") { Scene.push(CrimeSceneUI.updateCrimeScene()) }
         ), "[ Crime scenes menu ]")
 
         val punishmentsMenu = Menu(listOf(
@@ -44,7 +44,7 @@ object ApplicationUI {
                 MenuItem("Employees") { Scene.push(employeesMenu) },
                 MenuItem("Departments") { Scene.push(departmentsMenu) },
                 MenuItem("Cases") { Scene.push(casesMenu) },
-                MenuItem("\uD83D\uDED1 Crime scenes") { Scene.push(crimeScenesMenu) },
+                MenuItem("Crime scenes") { Scene.push(crimeScenesMenu) },
                 MenuItem("Punishments") { Scene.push(punishmentsMenu) },
                 MenuItem("\uD83D\uDED1 Promotion (domain operation)") { Scene.push(EmployeeUI.promotion()) },
                 MenuItem("\uD83D\uDED1 Transfer employees (domain operation)") { Scene.push(EmployeeUI.transferEmployees()) },
