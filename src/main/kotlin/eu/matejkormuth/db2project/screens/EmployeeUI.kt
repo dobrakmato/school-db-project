@@ -4,6 +4,7 @@ import eu.matejkormuth.db2project.*
 import eu.matejkormuth.db2project.models.Employee
 import eu.matejkormuth.db2project.models.EmployeeType
 import eu.matejkormuth.db2project.ui.*
+import java.sql.SQLException
 
 object EmployeeUI {
 
@@ -35,7 +36,7 @@ object EmployeeUI {
                     Scene.replace(Success("Employee inserted successfully ID: ${employee.id}"))
                 } catch (ex: Exception) {
                     rollback()
-                    Scene.replace(Error("Insert operation failed! ${ex.message}"))
+                    Scene.replace(Error("Insert operation failed!"))
                 }
             }
         }
@@ -89,8 +90,11 @@ object EmployeeUI {
                     Employee.assignCase(it[employeeId].toInt(), it[caseId].toInt())
                     Scene.replace(Success("Case assigned!"))
                 } catch (ex: Exception) {
-                    // todo: special message for unique constraint violation
-                    Scene.replace(Error("Cannot add specified employee to specified case. Detail: ${ex.message}"))
+                    if (ex is SQLException) {
+                        Scene.replace(Error("Cannot add specified employee to specified case. Detail: Already assigned."))
+                    } else {
+                        Scene.replace(Error("Cannot add specified employee to specified case. Detail: ${ex.message}"))
+                    }
                 }
             }
         }

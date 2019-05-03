@@ -5,6 +5,7 @@ import eu.matejkormuth.db2project.getOrNull
 import eu.matejkormuth.db2project.models.*
 import eu.matejkormuth.db2project.transaction
 import eu.matejkormuth.db2project.ui.*
+import java.sql.SQLException
 
 object PunishmentUI {
 
@@ -25,7 +26,11 @@ object PunishmentUI {
                 Person.punish(it[personId].toInt())
                 Scene.replace(Success("Person punished."))
             } catch (ex: Exception) {
-                Scene.replace(Error("Cannot punish specified person. Detail: ${ex.message}"))
+                if(ex is SQLException) {
+                    Scene.replace(Error("Cannot punish specified person. Detail: Already punished"))
+                } else {
+                    Scene.replace(Error("Cannot punish specified person. Detail: ${ex.message}"))
+                }
             }
         }
     }
