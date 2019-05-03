@@ -52,11 +52,10 @@ data class Case(
 
         fun autoAssign(caseId: Int, count: Int): Iterable<Employee> = transaction {
             val case = findOne<Case>(caseId, forUpdate = true) ?: throw RuntimeException("Case not found!")
-
-            // todo: do not request already assigned employees: add not in to bored_employee.sql
+            val alreadyAssigned = findAllReferenced<AssignedEmployee>(case.id, "case_id")
 
             /* find employees with least works to do that are not assigned to this case */
-            var employees = Employee.findBoredEmployees(caseId, this).filter {
+            var employees = Employee.findBoredEmployees(caseId, alreadyAssigned.map { it.employee.id }, this).filter {
                 if (case.caseType == CaseType.CRIME) return@filter true
                 if (it.type == EmployeeType.INSPECTOR || it.type == EmployeeType.POLICEMAN) return@filter true
                 return@filter false

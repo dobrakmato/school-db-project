@@ -55,8 +55,11 @@ data class Employee(
             }
         }
 
-        fun findBoredEmployees(caseId: Int, ctx: ConnectionAware): Iterable<Employee> {
-            return ctx.runQuery(loadQuery("/bored_employees.sql").replace("?", caseId.toString())) { rs ->
+        fun findBoredEmployees(caseId: Int, exceptEmployees: Iterable<Int>, ctx: ConnectionAware): Iterable<Employee> {
+            val q = loadQuery("/bored_employees.sql")
+                    .replaceFirst("?", caseId.toString())
+                    .replaceFirst("?", exceptEmployees.joinToString(","))
+            return ctx.runQuery(q) { rs ->
                 rs.use {
                     it.map {
                         Employee(
