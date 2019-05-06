@@ -21,8 +21,8 @@ FROM (SELECT EXTRACT(MONTH FROM created_at)                                     
            ROW_NUMBER() OVER (PARTITION BY EXTRACT(MONTH FROM confirmed_at) ORDER BY count(*) DESC) as row_num
     FROM connections
              JOIN persons p on connections.person_id = p.id
-    WHERE confirmed_at < '2020-01-01'
-      AND confirmed_at > '2019-01-01'
+    WHERE confirmed_at < date_trunc('year', now()) + INTERVAL '1 YEAR'
+      AND confirmed_at > date_trunc('year', now())
       AND p.person_type = 0 /* podozrivy */
       AND confirmed_by_id IS NOT NULL
     GROUP BY EXTRACT(MONTH FROM confirmed_at), confirmed_by_id

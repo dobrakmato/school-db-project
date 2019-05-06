@@ -46,14 +46,12 @@ object ApplicationUI {
                 MenuItem("Cases") { Scene.push(casesMenu) },
                 MenuItem("Crime scenes") { Scene.push(crimeScenesMenu) },
                 MenuItem("Punishments") { Scene.push(punishmentsMenu) },
-                MenuItem("\uD83D\uDED1 Promotion (domain operation)") { Scene.push(EmployeeUI.promotion()) },
-                MenuItem("\uD83D\uDED1 Transfer employees (domain operation)") { Scene.push(EmployeeUI.transferEmployees()) },
+                MenuItem("Promotion (domain operation)") { Scene.push(EmployeeUI.promotion()) },
+                MenuItem("Transfer employees (domain operation)") { Scene.push(EmployeeUI.transferEmployees()) },
                 MenuItem("☠️ Dangerous city districts (statistic)") { Scene.push(dangerousCityDistricts()) },
                 MenuItem("\uD83D\uDCC8 Cop of month (statistic)") { Scene.push(copOfMonth()) }
         ), header = "[ ⭐⭐ POLICE DEPARTMENT - MENU ⭐⭐ ]", allowBack = false)
     }
-
-    /* Domain operations */
 
     /* Statistics */
 
