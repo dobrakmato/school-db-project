@@ -134,7 +134,13 @@ object EmployeeUI {
     }
 
 
-    fun transferEmployees(): Drawable {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    fun transferEmployees(): Drawable = transaction {
+        try {
+            val updated = runUpdate(loadQuery("/move_employees.sql"))
+            commit()
+            Success("Success! Moved $updated employees from over-populated case to under-populatedcase.")
+        } catch (ex: Exception) {
+            Error("Sorry, something went wrong.")
+        }
     }
 }
