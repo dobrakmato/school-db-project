@@ -131,4 +131,9 @@ fun <T> ConnectionAware.runQuery(sql: Sql, receiver: (it: ResultSet) -> T): T = 
     return receiver(it.executeQuery(sql))
 }
 
+fun ConnectionAware.runUpdate(sql: Sql): Int = this.connection.createStatement().use {
+    log.debug("SQL: $sql")
+    return it.executeUpdate(sql)
+}
+
 fun ConnectionAware.rollback() = this.connection.rollback()

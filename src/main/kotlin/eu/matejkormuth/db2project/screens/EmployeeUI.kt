@@ -123,9 +123,16 @@ object EmployeeUI {
         }
     }
 
-    fun promotion(): Drawable {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    fun promotion(): Drawable = transaction {
+        try {
+            val updated = runUpdate(loadQuery("/promotion.sql"))
+            commit()
+            Success("Success! Promoted $updated employees.")
+        } catch (ex: Exception) {
+            Error("Sorry, something went wrong.")
+        }
     }
+
 
     fun transferEmployees(): Drawable {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
