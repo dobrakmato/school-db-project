@@ -10,8 +10,8 @@ FROM (SELECT EXTRACT(MONTH FROM created_at)                                     
              count(*)                                                                               as closed_cases,
              ROW_NUMBER() OVER (PARTITION BY EXTRACT(MONTH FROM created_at) ORDER BY count(*) DESC) as row_num
       FROM cases
-      WHERE created_at < '2020-01-01'
-        AND created_at > '2019-01-01'
+      WHERE created_at < date_trunc('year', now()) + INTERVAL '1 YEAR'
+        AND created_at > date_trunc('year', now())
         AND closed_by_id IS NOT NULL
       GROUP BY EXTRACT(MONTH FROM created_at), closed_by_id) a
          JOIN (
