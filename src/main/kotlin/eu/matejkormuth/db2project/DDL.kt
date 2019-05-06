@@ -50,6 +50,26 @@ object DDL {
             }
         }
 
+
+        fun createTableQueries(table: Table<out Entity>): Sql {
+            var sql = "DROP TABLE IF EXISTS ${table.name} CASCADE; CREATE TABLE IF NOT EXISTS ${table.name} (\n"
+            table.columns.values.forEach {
+                val name = if (it.isReference) camelToSnakeCase(it.name) else camelToSnakeCase(it.name)
+                val type = createSqlType(it)
+
+                sql += "\t $name $type, \n"
+            }
+            sql = sql.trim('\n', ' ', ',') + '\n'
+            return "$sql);"
+        }
+
+        val create = tables.map { Database.tableFor(it) }.map { createTableQueries(it) }.toList()
+        val fk = tables.map { Database.tableFor(it) }.flatMap { createForeignKeys(it) }.toList()
+
+        return create + fk
+    }
+
+    fun createScriptIndices(vararg tables: Class<out Entity>): List<Sql> {
         fun createIndices(table: Table<out Entity>): Iterable<String> {
             val foreignIndices = table.columns.values.filter { it.isReference }.map {
                 "CREATE INDEX ON ${table.name}(${it.name})"
@@ -66,23 +86,8 @@ object DDL {
             return unique + foreignIndices + requestedIndices
         }
 
-        fun createTableQueries(table: Table<out Entity>): Sql {
-            var sql = "DROP TABLE IF EXISTS ${table.name} CASCADE; CREATE TABLE IF NOT EXISTS ${table.name} (\n"
-            table.columns.values.forEach {
-                val name = if (it.isReference) camelToSnakeCase(it.name) else camelToSnakeCase(it.name)
-                val type = createSqlType(it)
 
-                sql += "\t $name $type, \n"
-            }
-            sql = sql.trim('\n', ' ', ',') + '\n'
-            return "$sql);"
-        }
-
-        val create = tables.map { Database.tableFor(it) }.map { createTableQueries(it) }.toList()
-        val fk = tables.map { Database.tableFor(it) }.flatMap { createForeignKeys(it) }.toList()
-        val indices = tables.map { Database.tableFor(it) }.flatMap { createIndices(it) }.toList()
-
-        return create + fk + indices
+        return tables.map { Database.tableFor(it) }.flatMap { createIndices(it) }.toList()
     }
 
 }

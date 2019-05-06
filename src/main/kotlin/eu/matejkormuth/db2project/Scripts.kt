@@ -6,24 +6,28 @@ import java.lang.RuntimeException
 import java.util.concurrent.TimeUnit
 import kotlin.math.asin
 
-fun createTables() {
-    transaction {
-        DDL.createScript(
-                AssignedEmployee::class.java,
-                Case::class.java,
-                Category::class.java,
-                CityDistrict::class.java,
-                Connection::class.java,
-                CrimeScene::class.java,
-                Department::class.java,
-                Employee::class.java,
-                Person::class.java,
-                Punishment::class.java
-        ).forEach { sql -> run(sql) }
-        run("ALTER TABLE assigned_employees ADD CONSTRAINT uniq_case_empl UNIQUE (case_id, employee_id)")
-        run("create index cases_created_at_closed_by_id_index on cases (created_at, closed_by_id);")
-    }
+
+val entities = arrayOf(AssignedEmployee::class.java,
+        Case::class.java,
+        Category::class.java,
+        CityDistrict::class.java,
+        Connection::class.java,
+        CrimeScene::class.java,
+        Department::class.java,
+        Employee::class.java,
+        Person::class.java,
+        Punishment::class.java)
+
+fun createTables() = transaction {
+    DDL.createScript(*entities).forEach { sql -> run(sql) }
+    run("ALTER TABLE assigned_employees ADD CONSTRAINT uniq_case_empl UNIQUE (case_id, employee_id)")
+    run("create index cases_created_at_closed_by_id_index on cases (created_at, closed_by_id);")
 }
+
+fun createIndices() = transaction {
+    DDL.createScriptIndices(*entities).forEach { sql -> run(sql) }
+}
+
 
 inline fun <reified T : Entity> ConnectionAware.fillTable(count: Int, crossinline block: (Int) -> T) {
     var index = 0
