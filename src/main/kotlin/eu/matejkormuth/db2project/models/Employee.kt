@@ -82,9 +82,11 @@ data class Employee(
          * @throws RuntimeException when operation fails
          */
         fun findBoredEmployees(caseId: Int, exceptEmployees: Iterable<Int>, ctx: ConnectionAware): Iterable<Employee> {
+            val except = exceptEmployees + listOf(0)
+
             val q = loadQuery("/bored_employees.sql")
                     .replaceFirst("?", caseId.toString())
-                    .replaceFirst("?", exceptEmployees.joinToString(","))
+                    .replaceFirst("?", except.joinToString(","))
             return ctx.runQuery(q) { rs ->
                 rs.use {
                     it.map {
