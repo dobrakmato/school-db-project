@@ -3,6 +3,10 @@ package eu.matejkormuth.db2project.ui
 import com.github.ajalt.mordant.TermColors
 import java.util.*
 
+/**
+ * UI component for drawing and handling input of menus.
+ * @see MenuItem
+ */
 data class Menu(val items: List<MenuItem>, val header: String? = null, val allowBack: Boolean = true) : Drawable {
 
     override fun draw(ctx: ConsoleContext) {
@@ -36,6 +40,9 @@ data class Menu(val items: List<MenuItem>, val header: String? = null, val allow
         items[optional.get() - 1].onChoose()
     }
 
+    /**
+     * Formats one form item.
+     */
     private fun formatItem(index: Int, item: MenuItem, colors: TermColors): String {
         return "${colors.brightYellow((index + 1).toString())}. ${item.text}"
     }

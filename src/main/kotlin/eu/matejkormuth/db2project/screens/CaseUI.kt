@@ -6,7 +6,14 @@ import eu.matejkormuth.db2project.ui.*
 import java.sql.SQLException
 import java.time.Instant
 
+/**
+ * Methods related to UI related to cases.
+ */
 object CaseUI {
+
+    /**
+     * Creates and returns UI element used for listing cases.
+     */
     fun listCase(): Drawable {
         val caseId = FormItem.requiredId("Case ID")
         return DirectControl { ctx ->
@@ -23,6 +30,9 @@ object CaseUI {
         }
     }
 
+    /**
+     * Creates and returns UI element used for creating cases.
+     */
     fun createCase(): Drawable {
         val allowedCaseTypes = CaseType.values().map { it.toString() }
 
@@ -69,6 +79,9 @@ object CaseUI {
         }
     }
 
+    /**
+     * Creates and returns UI element used for updating cases.
+     */
     fun updateCase(): Drawable {
         return Menu(listOf(
                 MenuItem("Assign case to employee") { Scene.push(EmployeeUI.addCaseToEmployee()) },
@@ -78,6 +91,9 @@ object CaseUI {
         ), "[ Menu - Update case ]")
     }
 
+    /**
+     * Creates and returns UI element used for confirming connection.
+     */
     private fun confirmConnection(): Drawable {
         val confirmerId = FormItem.requiredId("Who is confirming the connection? (ID)")
         val connectionId = FormItem.requiredId("Connection ID")
@@ -92,6 +108,9 @@ object CaseUI {
         }
     }
 
+    /**
+     * Creates and returns UI element used for adding connection to case.
+     */
     private fun addConnectionToCase(): Drawable {
         val allowedConnectionTypes = PersonType.values().map { it.toString() }
 
@@ -130,6 +149,9 @@ object CaseUI {
         }
     }
 
+    /**
+     * Creates and returns UI element used for closing cases.
+     */
     fun closeCase(): Drawable {
         val closerId = FormItem.requiredId("Who is closing the case? (ID)")
         val caseId = FormItem.requiredId("Case ID")
@@ -143,6 +165,9 @@ object CaseUI {
         }
     }
 
+    /**
+     * Creates and returns UI element used for auto assigning employees to case.
+     */
     fun autoAssignEmployeesToCase(): Drawable {
         val caseId = FormItem.requiredId("Case ID")
         val count = FormItem.requiredId("How many employees")

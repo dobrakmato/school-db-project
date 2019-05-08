@@ -1,5 +1,8 @@
 package eu.matejkormuth.db2project.ui
 
+/**
+ * UI component for rendering success messages.
+ */
 data class Success(val text: String, val waitForEnter: Boolean = false) : Drawable {
     override fun draw(ctx: ConsoleContext) {
         ctx.text("")

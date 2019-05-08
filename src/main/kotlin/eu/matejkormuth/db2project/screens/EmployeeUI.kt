@@ -6,8 +6,14 @@ import eu.matejkormuth.db2project.models.EmployeeType
 import eu.matejkormuth.db2project.ui.*
 import java.sql.SQLException
 
+/**
+ * Methods related to UI related to employees.
+ */
 object EmployeeUI {
 
+    /**
+     * Creates and returns UI element used for listing employees.
+     */
     fun listEmployees(): Drawable {
         val employees = transaction { findAll<Employee>(eagerLoad = true) }
 
@@ -16,6 +22,9 @@ object EmployeeUI {
         }
     }
 
+    /**
+     * Creates and returns UI element used for creating employees.
+     */
     fun createEmployee(): Drawable {
         val allowedEmployeeTypes = EmployeeType.values().map { it.toString() }
 
@@ -42,6 +51,9 @@ object EmployeeUI {
         }
     }
 
+    /**
+     * Creates and returns UI element used for updating employees.
+     */
     fun updateEmployee(): Drawable {
         return DirectControl { ctx ->
             val employeeId = FormItem.requiredId("Employee ID (to update)")
@@ -74,6 +86,9 @@ object EmployeeUI {
         }
     }
 
+    /**
+     * Creates and returns UI element used for updating cases.
+     */
     fun updateCases(): Drawable {
         return Menu(listOf(
                 MenuItem("Assign case to employee") { Scene.push(addCaseToEmployee()) },
@@ -81,6 +96,9 @@ object EmployeeUI {
         ), "[ Menu - Update cases of employee ]")
     }
 
+    /**
+     * Creates and returns UI element used for adding employees to case.
+     */
     fun addCaseToEmployee(): Drawable {
         val caseId = FormItem.requiredId("Case ID")
         val employeeId = FormItem.requiredId("Employee ID")
@@ -98,6 +116,9 @@ object EmployeeUI {
         }
     }
 
+    /**
+     * Creates and returns UI element used for removing employees to case.
+     */
     fun removeCaseFromEmployee(): Drawable {
         val caseId = FormItem.requiredId("Case ID")
         val employeeId = FormItem.requiredId("Employee ID")
@@ -111,6 +132,9 @@ object EmployeeUI {
         }
     }
 
+    /**
+     * Creates and returns UI element used for deleting employees.
+     */
     fun deleteEmployee(): Drawable {
         val id = FormItem.requiredId("Employee ID")
         return Form(listOf(id), "[ Form - Delete existing employee ]") {
@@ -123,6 +147,9 @@ object EmployeeUI {
         }
     }
 
+    /**
+     * Creates and returns UI element used for promotion.
+     */
     fun promotion(): Drawable = transaction {
         try {
             val updated = runUpdate(loadQuery("/promotion.sql"))
@@ -133,14 +160,16 @@ object EmployeeUI {
         }
     }
 
-
+    /**
+     * Creates and returns UI element used for employee transfer.
+     */
     fun transferEmployees(): Drawable = transaction {
         try {
             val updated = runUpdate(loadQuery("/move_employees.sql"))
             commit()
             Success("Success! Moved $updated employees from over-populated case to under-populatedcase.")
         } catch (ex: Exception) {
-            Error("Sorry, something went wrong.")
+            Error("Sorry, something went wrong. ${ex.message}")
         }
     }
 }

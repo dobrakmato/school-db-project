@@ -5,6 +5,9 @@ import java.lang.reflect.Parameter
 import java.lang.reflect.ParameterizedType
 import java.time.Instant
 
+/**
+ * Class used to represent one table field at runtime. Used by DDL and RDG operations.
+ */
 data class TableField(private val it: Field, private val parameter: Parameter) {
     private val intyTypes = listOf(Int::class.java, Integer::class.java)
 
@@ -31,12 +34,24 @@ data class TableField(private val it: Field, private val parameter: Parameter) {
         if (!it.isAccessible) it.isAccessible = true
     }
 
+    /**
+     * Returns value of this field as ID of specified entity.
+     */
     fun <T> idFor(entity: T): Id = it.getInt(entity)
 
+    /**
+     * Returns value of this field as Boolean of specified entity.
+     */
     fun <T> booleanFor(entity: T): Boolean? = it.getBoolean(entity)
 
+    /**
+     * Returns value of this field as Instant of specified entity.
+     */
     fun <T> instantFor(row: T): Instant? = it.get(row) as? Instant
 
+    /**
+     * Returns value of this field as String? of specified entity.
+     */
     fun <T> valueFor(row: T): String? {
         return if (isEnum) {
             (it.get(row) as Enum<*>).ordinal.toString()

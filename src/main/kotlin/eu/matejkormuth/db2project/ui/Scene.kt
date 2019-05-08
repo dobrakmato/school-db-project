@@ -3,11 +3,17 @@ package eu.matejkormuth.db2project.ui
 import eu.matejkormuth.db2project.logger
 import java.util.*
 
+/**
+ * Main UI handling class. Provides layering of different UI components in stack fashion.
+ */
 object Scene {
 
     private val stack = ArrayDeque<Drawable>(16)
     private val ctx = ConsoleContext()
 
+    /**
+     * Main UI loop method.
+     */
     fun loop() {
         /* Perform first clear */
         ctx.clear()
@@ -28,11 +34,17 @@ object Scene {
         }
     }
 
+    /**
+     * Pushes new drawable onto the stack.
+     */
     fun push(drawable: Drawable) {
         log.debug("Pushed drawable $drawable")
         stack.push(drawable)
     }
 
+    /**
+     * Pops specified drawable if it is the topmost drawable on the stack.
+     */
     fun pop(drawable: Drawable) {
         if (stack.peek() == drawable) {
             stack.pop()
@@ -40,7 +52,9 @@ object Scene {
         }
     }
 
-    /* replace current top with specified - essentially pop() then push() in one call */
+    /**
+     * Replaces current top with specified - essentially pop() then push() in one call
+     */
     fun replace(drawable: Drawable) {
         log.debug("Replacing current top with $drawable")
         stack.pop()

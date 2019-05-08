@@ -7,8 +7,14 @@ import eu.matejkormuth.db2project.transaction
 import eu.matejkormuth.db2project.ui.*
 import java.sql.SQLException
 
+/**
+ * Methods related to UI related to punishments.
+ */
 object PunishmentUI {
 
+    /**
+     * Creates and returns UI element used for listing punishments.
+     */
     fun listPunishments(): Drawable {
         val punishments = transaction { findAll<Punishment>(eagerLoad = true) }
 
@@ -18,6 +24,9 @@ object PunishmentUI {
         }
     }
 
+    /**
+     * Creates and returns UI element used for creating punishments.
+     */
     fun createPunishment(): Drawable {
         val personId = FormItem.requiredId("Person ID")
 
@@ -26,7 +35,7 @@ object PunishmentUI {
                 Person.punish(it[personId].toInt())
                 Scene.replace(Success("Person punished."))
             } catch (ex: Exception) {
-                if(ex is SQLException) {
+                if (ex is SQLException) {
                     Scene.replace(Error("Cannot punish specified person. Detail: Already punished"))
                 } else {
                     Scene.replace(Error("Cannot punish specified person. Detail: ${ex.message}"))

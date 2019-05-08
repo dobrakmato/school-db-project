@@ -2,6 +2,9 @@ package eu.matejkormuth.db2project.models
 
 import eu.matejkormuth.db2project.*
 
+/**
+ * This class represents Person and is used to generate persons table.
+ */
 data class Person(
         val id: Id = NewId,
         val name: String,
@@ -9,6 +12,13 @@ data class Person(
 ) : Entity() {
 
     companion object {
+
+        /**
+         * Punishes person specified by id.
+         *
+         * @param personId id of person to punish
+         * @throws RuntimeException when operation fails
+         */
         fun punish(personId: Id): Lazy<Punishment> = transaction {
             val person = findOne<Person>(personId)
                     ?: throw RuntimeException("Specified person does not exists.")

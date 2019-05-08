@@ -6,8 +6,14 @@ import eu.matejkormuth.db2project.models.CrimeScene
 import eu.matejkormuth.db2project.ui.*
 import java.sql.SQLException
 
+/**
+ * Methods related to UI related to crime scenes.
+ */
 object CrimeSceneUI {
 
+    /**
+     * Creates and returns UI element used for listing crime scenes.
+     */
     fun listCrimeScenes(): Drawable {
         val departments = transaction { findAll<CrimeScene>(eagerLoad = true) }
 
@@ -16,6 +22,9 @@ object CrimeSceneUI {
         }
     }
 
+    /**
+     * Creates and returns UI element used for creating crimes scene.
+     */
     fun createCrimeScene(): Drawable {
         val name = FormItem.required("Name of crime scene")
         val cityDistrictId = FormItem.requiredId("Associated city district ID")
@@ -41,6 +50,9 @@ object CrimeSceneUI {
         }
     }
 
+    /**
+     * Creates and returns UI element used for updating crimes scene.
+     */
     fun updateCrimeScene(): Drawable {
         val crimeSceneId = FormItem.requiredId("Crime scene ID")
         val name = FormItem.required("Name of crime scene")

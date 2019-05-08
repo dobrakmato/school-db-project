@@ -2,6 +2,9 @@ package eu.matejkormuth.db2project.models
 
 import eu.matejkormuth.db2project.*
 
+/**
+ * This class represents Employee and is used to generate employees table.
+ */
 data class Employee(
         val id: Id = NewId,
         val name: String,
@@ -11,6 +14,14 @@ data class Employee(
 ) : Entity() {
 
     companion object {
+
+        /**
+         * Assigns case specified by id to employee specified by id.
+         *
+         * @param caseId id of case
+         * @param employeeId id of employee
+         * @throws RuntimeException when operation fails
+         */
         fun assignCase(employeeId: Id, caseId: Id): Lazy<AssignedEmployee> {
             transaction {
                 val employee = findOne<Employee>(employeeId, forUpdate = true)
@@ -36,6 +47,13 @@ data class Employee(
             }
         }
 
+        /**
+         * Withholds case specified by id to employee specified by id.
+         *
+         * @param caseId id of case
+         * @param employeeId id of employee
+         * @throws RuntimeException when operation fails
+         */
         fun removeCase(employeeId: Id, caseId: Id) {
             transaction {
                 val employee = findOne<Employee>(employeeId, forUpdate = true)
@@ -55,6 +73,14 @@ data class Employee(
             }
         }
 
+        /**
+         * Finds employees who have small number of cases assigned to them.
+         *
+         * @param caseId id of case
+         * @param exceptEmployees id of employees to not include in result
+         * @param ctx connection context
+         * @throws RuntimeException when operation fails
+         */
         fun findBoredEmployees(caseId: Int, exceptEmployees: Iterable<Int>, ctx: ConnectionAware): Iterable<Employee> {
             val q = loadQuery("/bored_employees.sql")
                     .replaceFirst("?", caseId.toString())

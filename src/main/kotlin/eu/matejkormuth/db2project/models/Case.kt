@@ -3,6 +3,9 @@ package eu.matejkormuth.db2project.models
 import eu.matejkormuth.db2project.*
 import java.time.Instant
 
+/**
+ * This class represents Case and is used to generate cases table.
+ */
 data class Case(
         val id: Id = NewId,
         val description: String,
@@ -15,6 +18,13 @@ data class Case(
 ) : Entity() {
     companion object {
 
+        /**
+         * Tries to close case by it's id and id of employee who is closing it.
+         *
+         * @param caseId id of case
+         * @param closedById id of closer
+         * @throws RuntimeException when operation fails
+         */
         fun close(caseId: Int, closedById: Int) = transaction {
             val case = findOne<Case>(caseId, forUpdate = true) ?: throw RuntimeException("Case not found!")
             val closedBy = findOne<Employee>(closedById, forUpdate = true)
@@ -50,6 +60,13 @@ data class Case(
 
         }
 
+        /**
+         * Automatically assigns specified count of employees to specified case.`
+         *
+         * @param caseId id of case
+         * @param count amount of employees to assign
+         * @throws RuntimeException when operation fails
+         */
         fun autoAssign(caseId: Int, count: Int): Iterable<Employee> = transaction {
             val case = findOne<Case>(caseId, forUpdate = true) ?: throw RuntimeException("Case not found!")
             val alreadyAssigned = findAllReferenced<AssignedEmployee>(case.id, "case_id")

@@ -2,6 +2,9 @@ package eu.matejkormuth.db2project.ui
 
 import kotlin.text.StringBuilder
 
+/**
+ * UI component used to render tables of rows.
+ */
 class DataTable<Row>(
         private val rows: Iterable<Row>,
         private val header: Iterable<String>,
@@ -38,15 +41,27 @@ class DataTable<Row>(
         printSeparator(ctx)
     }
 
+    /**
+     * Prints table header.
+     */
     private fun tableHeader(ctx: ConsoleContext) = ctx.text(transformToRow(header))
 
+    /**
+     * Prints table separator.
+     */
     private fun printSeparator(ctx: ConsoleContext) = ctx
             .text(columnsWidths.joinToString("+") { "-".repeat(it) })
 
+    /**
+     * Transforms iterable of string to table row.
+     */
     private fun transformToRow(items: Iterable<String>) = items
             .mapIndexed { idx, it -> padCenter(it, columnsWidths[idx]) }
             .joinToString("|")
 
+    /**
+     * Pads specified string to center with specified padding character and width.
+     */
     private fun padCenter(str: String, width: Int, char: Char = ' '): String {
         val whitespace = width - str.length
         val left = Math.floor(whitespace / 2.0).toInt()

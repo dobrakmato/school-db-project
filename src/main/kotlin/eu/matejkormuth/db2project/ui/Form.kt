@@ -1,5 +1,9 @@
 package eu.matejkormuth.db2project.ui
 
+/**
+ * UI component for rendering (and handling input) of form with predefined items to ask user for.
+ * @see FormItem
+ */
 class Form(
         private val items: Iterable<FormItem>,
         private val header: String? = null,
@@ -25,6 +29,9 @@ class Form(
         handleAnswers()
     }
 
+    /**
+     * Asks user for specified form item.
+     */
     private fun ask(it: FormItem, ctx: ConsoleContext) {
         var isValid = false
         while (!isValid) {
@@ -45,11 +52,17 @@ class Form(
         }
     }
 
+    /**
+     * Calls specified answers handler and then finishes this form.
+     */
     private fun handleAnswers() {
         onComplete(Answers(answers))
         finish()
     }
 
+    /**
+     * Helper class to provide Map-like interface to answers.
+     */
     class Answers(private val map: Map<FormItem, String>) {
         operator fun get(item: FormItem): String = map.getValue(item)
     }

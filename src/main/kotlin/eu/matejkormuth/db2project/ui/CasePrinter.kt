@@ -9,7 +9,14 @@ import eu.matejkormuth.db2project.models.CaseType
 import eu.matejkormuth.db2project.models.Connection
 import eu.matejkormuth.db2project.transaction
 
+/**
+ * Object use to pretty printing cases with all the details.
+ */
 object CasePrinter {
+
+    /**
+     * Prints specified case to terminal.
+     */
     fun printCase(caseId: Int, ctx: ConsoleContext) = transaction {
 
         val case = findOne<Case>(caseId, eagerLoad = true)

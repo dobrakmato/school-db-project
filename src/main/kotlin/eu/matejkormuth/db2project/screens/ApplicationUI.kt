@@ -4,7 +4,14 @@ import eu.matejkormuth.db2project.models.CopOfMonth
 import eu.matejkormuth.db2project.models.DangerousCityDistricts
 import eu.matejkormuth.db2project.ui.*
 
+/**
+ * Methods related to application UI.
+ */
 object ApplicationUI {
+
+    /**
+     * Creates and returns main menu of application.
+     */
     fun mainMenu(): Menu {
         val employeesMenu = Menu(listOf(
                 MenuItem("List employees") { Scene.push(EmployeeUI.listEmployees()) },
@@ -55,6 +62,9 @@ object ApplicationUI {
 
     /* Statistics */
 
+    /**
+     * Creates and returns UI for dangerous city districts statistic.
+     */
     private fun dangerousCityDistricts(): Drawable {
         val rows = DangerousCityDistricts.getAllRows()
         return DataTable(rows, listOf("Year", "Quarter", "Month", "#", "District", "Cases", "Misdemeanors", "Crimes")) {
@@ -71,6 +81,9 @@ object ApplicationUI {
         }
     }
 
+    /**
+     * Creates and returns UI for cop of month statistic.
+     */
     private fun copOfMonth(): Drawable {
         val rows = CopOfMonth.getAllRows()
         return DataTable(rows, listOf("Month", "#", "Closed by", "Closed count", "#", "Confirmed by", "Confirmed count")) {

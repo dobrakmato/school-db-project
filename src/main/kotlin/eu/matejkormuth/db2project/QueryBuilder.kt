@@ -8,6 +8,9 @@ import java.sql.Types
 import java.time.Instant
 import java.time.ZoneId
 
+/**
+ * SQL query builder. Provides type-safe alternative to building queries.
+ */
 class QueryBuilder<T : Entity>(private val table: Table<T>, private val connection: Connection) {
 
     sealed class Param {
@@ -25,6 +28,9 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
     private val aliasIterator = ('a'..'z').iterator()
     private val aliases = mutableMapOf<TableField, String>()
 
+    /**
+     * Adds select clause.
+     */
     fun select(columns: Iterable<String>? = null): QueryBuilder<T> = fluent {
         sql.append("SELECT ")
 
@@ -38,6 +44,9 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
 
     }
 
+    /**
+     * Adds select with joins clause.
+     */
     fun selectEager(): QueryBuilder<T> = fluent {
         eager = true
 
@@ -69,6 +78,9 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
         }
     }
 
+    /**
+     * Terminal operation: runs sql statement and inserts specified row.
+     */
     fun insertOne(row: T): Lazy<T> {
         val columns = mutableListOf<String>()
         val values = mutableListOf<String>()
@@ -104,7 +116,9 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
         return Lazy(autoIncrementedId)
     }
 
-    // make multiple calls to this method
+    /**
+     * Perform multi-insert. Make multiple calls to this method to insert multiple entities.
+     */
     fun insertMultiple(one: T) {
         var wasFirst = false
         if (!insert) {
@@ -140,7 +154,10 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
 
     }
 
-    fun updateOne(entity: T) = fluent {
+    /**
+     * Terminal operation: runs sql statement and updates specified row.
+     */
+    fun updateOne(entity: T) {
         val kvPairs = mutableListOf<String>()
 
         table.columns.values.filter { !it.isId }.forEach {
@@ -173,12 +190,24 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
 
     private fun updateById(id: Id) = eq("id", id)
 
+    /**
+     * Adds delete clause.
+     */
     fun delete(): QueryBuilder<T> = fluent { sql.append("DELETE FROM ${escape(table.name)}") }
 
+    /**
+     * Adds equals clause.
+     */
     fun <K> eq(column: String, value: K) = where(column, "=", value)
 
+    /**
+     * Adds and word.
+     */
     fun and() = fluent { sql.append(" AND") }
 
+    /**
+     * Adds where clause.
+     */
     fun <K> where(column: String, op: String, value: K) = fluent {
         var col = column /* Need this to strip the table name in some cases */
 
@@ -207,23 +236,38 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
         where = true
     }
 
+    /**
+     * Adds limit clause.
+     */
     fun limit(limit: Int): QueryBuilder<T> = fluent { sql.append(" LIMIT $limit") }
 
+    /**
+     * Adds for update modifier.
+     */
     fun forUpdate() = fluent { sql.append(" FOR UPDATE") }
 
+    /**
+     * Terminal operation: fetches first row.
+     */
     fun fetchOne(): T? = fetchMultiple().firstOrNull()
 
+    /**
+     * Adds order by clause.
+     */
     fun orderBy(column: String) = fluent {
         sql.append(" ORDER BY ${if (eager) "${table.name}." else ""}$column")
     }
 
+    /**
+     * Terminal operation: fetches multiple rows from database.
+     */
     fun fetchMultiple(): Iterable<T> {
         val list = mutableListOf<T>()
 
         createBoundStatement().use { stmt ->
             stmt.executeQuery().use {
                 while (it.next()) {
-                    list.add(table.instantiate(it, eager, if(aliases.isEmpty()) null else aliases))
+                    list.add(table.instantiate(it, eager, if (aliases.isEmpty()) null else aliases))
                 }
             }
 
@@ -231,8 +275,14 @@ class QueryBuilder<T : Entity>(private val table: Table<T>, private val connecti
         return list
     }
 
+    /**
+     * Executes built statement.
+     */
     fun execute(): Boolean = createBoundStatement().use { it.execute() }
 
+    /**
+     * Creates PreparedStatement and bind all parameters to it.
+     */
     private fun createBoundStatement(): PreparedStatement {
         var dbgSql = sql.toString()
 

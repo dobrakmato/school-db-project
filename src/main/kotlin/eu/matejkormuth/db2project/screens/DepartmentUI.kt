@@ -5,7 +5,14 @@ import eu.matejkormuth.db2project.models.Department
 import eu.matejkormuth.db2project.models.Employee
 import eu.matejkormuth.db2project.ui.*
 
+/**
+ * Methods related to UI related to departments.
+ */
 object DepartmentUI {
+
+    /**
+     * Creates and returns UI element used for listing departments.
+     */
     fun listDepartments(): Drawable {
         val departments = transaction { findAll<Department>(eagerLoad = true) }
 
@@ -14,6 +21,9 @@ object DepartmentUI {
         }
     }
 
+    /**
+     * Creates and returns UI element used for creating departments.
+     */
     fun createDepartment(): Drawable {
         val name = FormItem.required("Department name")
         val headEmployeeId = FormItem.requiredId("Head Employee ID")
@@ -36,6 +46,9 @@ object DepartmentUI {
         }
     }
 
+    /**
+     * Creates and returns UI element used for updating departments.
+     */
     fun updateDepartment(): Drawable {
         return DirectControl { ctx ->
             val departmentId = FormItem.requiredId("Department ID (to update)")
@@ -69,6 +82,9 @@ object DepartmentUI {
         }
     }
 
+    /**
+     * Creates and returns UI element used for deleting departments.
+     */
     fun deleteDepartment(): Drawable {
         val id = FormItem.requiredId("Department ID")
         return Form(listOf(id), "[ Form - Delete existing department ]") {

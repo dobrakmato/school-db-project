@@ -8,6 +8,9 @@ import java.time.Instant
 import java.util.*
 import kotlin.RuntimeException
 
+/**
+ * Class for deriving information from entity classes. Used by DDL and runtime RDG operations.
+ */
 class Table<T : Entity>(klass: Class<T>) {
     val name: String = DDL.camelToSnakeCase(DDL.pluralize(klass.simpleName))
 
@@ -26,8 +29,14 @@ class Table<T : Entity>(klass: Class<T>) {
 
     val hasId = idField != null
 
+    /**
+     * Creates new query builder associated with this table.
+     */
     fun queryBuilder(connection: Connection): QueryBuilder<T> = QueryBuilder(this, connection)
 
+    /**
+     * Class used to instantiate RDG objects from ResultSet objects.
+     */
     internal class Instantier<T>(private val javaConstructor: Constructor<*>, columns: Map<String, TableField>) {
         data class CtrParam(val argIdx: Int, val columnName: String, val enumClass: Class<*>?, val tableField: TableField)
 
@@ -97,7 +106,6 @@ class Table<T : Entity>(klass: Class<T>) {
             }
         }
     }
-
 
     fun instantiate(resultSet: ResultSet, eagerLoadLazys: Boolean, aliases: MutableMap<TableField, String>? = null, thisAlias: String? = null): T {
         try {

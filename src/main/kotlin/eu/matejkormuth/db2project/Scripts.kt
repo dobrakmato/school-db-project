@@ -2,11 +2,11 @@ package eu.matejkormuth.db2project
 
 import com.github.javafaker.Faker
 import eu.matejkormuth.db2project.models.*
-import java.lang.RuntimeException
 import java.util.concurrent.TimeUnit
-import kotlin.math.asin
 
-
+/**
+ * All entities / tables.
+ */
 val entities = arrayOf(AssignedEmployee::class.java,
         Case::class.java,
         Category::class.java,
@@ -18,17 +18,25 @@ val entities = arrayOf(AssignedEmployee::class.java,
         Person::class.java,
         Punishment::class.java)
 
+/**
+ * Runs create tables scripts.
+ */
 fun createTables() = transaction {
     DDL.createScript(*entities).forEach { sql -> run(sql) }
     run("ALTER TABLE assigned_employees ADD CONSTRAINT uniq_case_empl UNIQUE (case_id, employee_id)")
     run("create index cases_created_at_closed_by_id_index on cases (created_at, closed_by_id);")
 }
 
+/**
+ * Runs create indices script.
+ */
 fun createIndices() = transaction {
     DDL.createScriptIndices(*entities).forEach { sql -> run(sql) }
 }
 
-
+/**
+ * Provides nice way to fill table with multiple rows.
+ */
 inline fun <reified T : Entity> ConnectionAware.fillTable(count: Int, crossinline block: (Int) -> T) {
     var index = 0
     val seq = generateSequence { block(index++) }
@@ -42,6 +50,9 @@ fun perf(msg: String) {
     println(" [$time ms] $msg")
 }
 
+/**
+ * Fills tables with random data.
+ */
 fun fillTables() {
     val faker = Faker()
 

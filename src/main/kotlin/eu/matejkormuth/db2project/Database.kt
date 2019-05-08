@@ -5,6 +5,9 @@ import com.zaxxer.hikari.HikariDataSource
 import com.zaxxer.hikari.HikariConfig
 import java.sql.Connection
 
+/**
+ * Object holding the DataSource object and cache of Table objects.
+ */
 object Database {
     private lateinit var dataSource: DataSource
     private val tableCache: MutableMap<Class<*>, Table<*>> = hashMapOf()
@@ -20,6 +23,9 @@ object Database {
 
     fun getConnection(): Connection = dataSource.connection
 
+    /**
+     * Provides table object for specified entity class.
+     */
     @Suppress("UNCHECKED_CAST")
     fun <T : Entity> tableFor(klass: Class<T>): Table<T> {
         return tableCache.getOrPut(klass) { Table(klass) } as Table<T>

@@ -5,6 +5,9 @@ import eu.matejkormuth.db2project.map
 import eu.matejkormuth.db2project.runQuery
 import eu.matejkormuth.db2project.transaction
 
+/**
+ * This class represents single row of "dangerous city district" statistic result set.
+ */
 data class DangerousCityDistricts(
         val year: String,
         val quarter: String,
@@ -16,6 +19,10 @@ data class DangerousCityDistricts(
         val type1Count: Int
 ) {
     companion object {
+
+        /**
+         * Retrieves all rows of this statistic from database.
+         */
         fun getAllRows(): Iterable<DangerousCityDistricts> {
             return transaction {
                 runQuery(loadQuery("/dangerous_city_districts.sql")) { rs ->

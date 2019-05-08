@@ -1,8 +1,13 @@
 package eu.matejkormuth.db2project
 
-import eu.matejkormuth.db2project.models.Employee
 import java.sql.Connection
 
+/**
+ * Basically wrapper for integer. Used to encode foreign keys.
+ *
+ * Lazy's can be empty (representing null in table) or unresolved (containing only
+ * id of referenced entity) or resolved (containing the referenced object).
+ */
 data class Lazy<T : Entity>(
         val id: Int
 ) {
@@ -31,8 +36,14 @@ data class Lazy<T : Entity>(
     }
 }
 
+/**
+ * Returns resolved lazy or null.
+ */
 inline fun <reified K : Entity> Lazy<K>.getOrNull(): K? = value
 
+/**
+ * Resolved lazy using spcified connection and returns resolved object.
+ */
 inline fun <reified K : Entity> Lazy<K>.get(connection: Connection): K? {
     if (value == null) {
         value = Database.tableFor(K::class.java)

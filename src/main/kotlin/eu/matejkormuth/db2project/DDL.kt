@@ -4,8 +4,14 @@ import java.lang.StringBuilder
 import java.lang.reflect.ParameterizedType
 import java.time.Instant
 
+/**
+ * Handles generating DDL.
+ */
 object DDL {
 
+    /**
+     * Pluralizes specified singular word.
+     */
     fun pluralize(str: String): String {
         if (str.endsWith("y")) {
             return "${str.trimEnd('y')}ies"
@@ -13,6 +19,9 @@ object DDL {
         return "${str}s"
     }
 
+    /**
+     * Converts camel case to snake case.
+     */
     fun camelToSnakeCase(str: String): String {
         val snakeCase = StringBuilder()
 
@@ -27,7 +36,14 @@ object DDL {
         return snakeCase.toString()
     }
 
+    /**
+     * Returns create script for specified tables.
+     */
     fun createScript(vararg tables: Class<out Entity>): List<Sql> {
+
+        /**
+         * Creates sql type by table field object.
+         */
         fun createSqlType(it: TableField): String {
             val nullType = if (it.isNullable) "" else " NOT NULL"
             if (it.isEnum) return "INTEGER$nullType"
@@ -42,6 +58,9 @@ object DDL {
             } + nullType
         }
 
+        /**
+         * Creates sql statements used to create foreign keys.
+         */
         fun createForeignKeys(table: Table<out Entity>): Iterable<String> {
             return table.columns.values.filter { it.isReference }.map {
                 val refType = ((it.genericType as ParameterizedType).actualTypeArguments[0] as Class<*>)
@@ -50,7 +69,9 @@ object DDL {
             }
         }
 
-
+        /**
+         * Creates sql statements used to create tables.
+         */
         fun createTableQueries(table: Table<out Entity>): Sql {
             var sql = "DROP TABLE IF EXISTS ${table.name} CASCADE; CREATE TABLE IF NOT EXISTS ${table.name} (\n"
             table.columns.values.forEach {
@@ -69,7 +90,14 @@ object DDL {
         return create + fk
     }
 
+    /**
+     * Returns sql statements used to create indices on existing tables.
+     */
     fun createScriptIndices(vararg tables: Class<out Entity>): List<Sql> {
+
+        /**
+         * Returns sql statements used to create indices on specified table.
+         */
         fun createIndices(table: Table<out Entity>): Iterable<String> {
             val foreignIndices = table.columns.values.filter { it.isReference }.map {
                 "CREATE INDEX ON ${table.name}(${it.name})"

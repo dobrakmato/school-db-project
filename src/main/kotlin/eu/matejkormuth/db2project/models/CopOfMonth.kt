@@ -5,6 +5,9 @@ import eu.matejkormuth.db2project.map
 import eu.matejkormuth.db2project.runQuery
 import eu.matejkormuth.db2project.transaction
 
+/**
+ * This class represents single row of "cop of month" statistic result set.
+ */
 data class CopOfMonth(
         val month: Int,
         val closedPosition: Int,
@@ -15,6 +18,10 @@ data class CopOfMonth(
         val confirmedCount: Int
 ) {
     companion object {
+
+        /**
+         * Retrieves all rows of this statistic from database.
+         */
         fun getAllRows(): Iterable<CopOfMonth> {
             return transaction {
                 runQuery(loadQuery("/cop_of_month.sql")) { rs ->

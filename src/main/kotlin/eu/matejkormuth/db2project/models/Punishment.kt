@@ -2,6 +2,9 @@ package eu.matejkormuth.db2project.models
 
 import eu.matejkormuth.db2project.*
 
+/**
+ * This class represents Punishment and is used to generate punishments table.
+ */
 data class Punishment(
         val id: Id = NewId,
         @Unique val punished: Lazy<Person>,
@@ -9,6 +12,9 @@ data class Punishment(
         @Maybe val fineAmount: Int?
 ) : Entity() {
     companion object {
+        /**
+         * Creates punishment by specified person and case objects.
+         */
         fun create(person: Person, case: Case, caseCategory: Category): Punishment {
             val punishmentType = when (case.caseType) {
                 CaseType.MISDEMEANOR -> PunishmentType.FINE
